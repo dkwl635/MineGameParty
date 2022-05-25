@@ -19,6 +19,7 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
     PhotonView pv;
 
     [Header("UI")]
+    public GameObject roomCanavas;
     public Button readyBtn;
     public Text readyTxt;
     public Button StartBtn;
@@ -26,10 +27,16 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
     public Text ohterNickName;
 
 
+    [Header("Game")]
+    public GameObject[] MiniGame;
+
+
     //내가 조종하는 캐릭터
+    public delegate void MoveBtnEvent(int h);
+    public MoveBtnEvent MoveStart;
+    public MoveBtnEvent MoveEnd;
+
     [HideInInspector] public  LobbyPlayerController player;
-
-
    
     bool isReady = false;   //레디 상태
 
@@ -47,6 +54,7 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
     void Start()
     {
         PhotonNetwork.IsMessageQueueRunning = true;
+       
 
         StartBtn.gameObject.SetActive(false);
         
@@ -76,14 +84,12 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
     public void MoveBtnDown(int h)
     {
-        if (player)
-            player.MoveStart(h);
+        MoveStart?.Invoke(h); 
     }
 
     public void  MoveBtnUp(int h)
     {
-        if (player)
-            player.MoveEnd(h);
+        MoveEnd?.Invoke(h);
     }
 
 
@@ -114,4 +120,19 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
         StartBtn.gameObject.SetActive(isReady);
 
     }
+
+    public void GameStartBtn()
+    {
+        pv.RPC("GameStart", RpcTarget.AllBufferedViaServer, 0);
+        //GameStart(MiniGame[0]);
+    }
+
+    [PunRPC]
+    public void GameStart(int idx)
+    {
+        roomCanavas.SetActive(false);
+
+        MiniGame[idx].SetActive(true);
+    }
+
 }

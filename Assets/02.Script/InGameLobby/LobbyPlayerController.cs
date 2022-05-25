@@ -44,7 +44,12 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             nickNameTxt.color = Color.green;
 
             transform.position -= Vector3.forward;
-          
+
+            gameMgr.MoveStart += MoveStart;
+            gameMgr.MoveEnd += MoveEnd;
+
+
+
         }
         else
         {
@@ -61,6 +66,12 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     private void Update()
     {
+        Move_Update();
+    }
+
+
+    void Move_Update()
+    {
         if (pv.IsMine) //내가 조종할때
         {
             velocity.x = h * 2;
@@ -68,7 +79,7 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             rigidbody.velocity = velocity;
         }
         else //원격 플레이어일 때 수행
-        {       
+        {
             if (isOnece > 0.0f)
             { //내가 입장할 때 지 이미 존재하는 OtherPC들의 위치를 동기화 위해
                 isOnece -= Time.deltaTime;
@@ -76,7 +87,7 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 {
                     transform.position = currPos;
                 }
-                
+
                 return;
             }
 
@@ -84,19 +95,18 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             //기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
             if (1.0f < (transform.position - currPos).magnitude)
             {
-                transform.position = currPos;            
+                transform.position = currPos;
             }
             else
             {
                 //원격 플레이어의 플레이어를 수신받은 위치까지 부드럽게 이동시킴
                 transform.position = Vector3.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
             }
-  
-        } 
 
-       
+        }
+
+
     }
-
 
     public void MoveStart(int h)
     {

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -5279329584492318889}
   - component: {fileID: -9081467909760865380}
   - component: {fileID: -3391957229756455336}
+  - component: {fileID: 6330954579258740331}
   m_Layer: 0
   m_Name: Apple
   m_TagString: Untagged
@@ -134,9 +135,9 @@ MonoBehaviour:
   prefixField: -1
   Synchronization: 3
   OwnershipTransfer: 0
-  observableSearch: 2
+  observableSearch: 0
   ObservedComponents:
-  - {fileID: -5279329584492318889}
+  - {fileID: 6330954579258740331}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -166,3 +167,19 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &6330954579258740331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6032491525278186307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1

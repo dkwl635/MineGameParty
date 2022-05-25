@@ -234,7 +234,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
         Time.timeScale = 1.0f;  //게임에 들어갈 때는 원래 속도로...
 
-        AsyncOperation ao = SceneManager.LoadSceneAsync("InGameLobby");
+        AsyncOperation ao = SceneManager.LoadSceneAsync("InGame");
 
         yield return ao;
     }
