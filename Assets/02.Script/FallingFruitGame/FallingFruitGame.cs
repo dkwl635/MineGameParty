@@ -9,7 +9,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
 {
     PhotonView pv;
 
-    enum Fruits
+    enum FruitsType
     {
         Apple,
         Bananas,
@@ -31,15 +31,23 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     //로컬용 테스트
     public GameObject[] FruitsObj;
 
+    [Header("UI")]
     public TextMeshProUGUI scoreTxt;
+    public TextMeshProUGUI CountTxt;
+
+    public GameObject ResultPanel;
+    public TextMeshProUGUI myNickTxt;
+    public TextMeshProUGUI otherNickTxt;
+    public TextMeshProUGUI myScoreTxt;
+    public TextMeshProUGUI otherScoreTxt;
+    public TextMeshProUGUI winOrLose;
+
     private int score = 0;
     ExitGames.Client.Photon.Hashtable playerHash = new ExitGames.Client.Photon.Hashtable();
-
-
     float timer = 0.0f;
     float nextSpawnTime = 1.0f;
 
-
+    bool gameStart = true;
 
     private void Awake()
     {
@@ -57,7 +65,8 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         scoreTxt.text = score.ToString();
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-        
+
+        StartCoroutine(GameEnd());
     }
 
     private void Update()
@@ -66,7 +75,10 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
 
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
             return;
-       
+
+        if (!gameStart)
+            return;
+
         timer += Time.deltaTime;
         if(timer >= nextSpawnTime)
         {
@@ -79,23 +91,18 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
             timer = 0.0f;
             nextSpawnTime = Random.Range(0.7f, 1.5f);
         }
-
     }
 
-
+   
     public void SpawnFruits()
     {
-        int rand = Random.Range(0, (int)Fruits.Max);
+        int rand = Random.Range(0, (int)FruitsType.Max);
         float randf = Random.Range(-3.0f, 3.0f);
 
-        string name = ((Fruits)Random.Range(0, (int)Fruits.Max)).ToString();
+        string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
         PhotonNetwork.InstantiateRoomObject("Fruits/" + name, fruitsSpanwPos.transform.position + Vector3.right * randf, Quaternion.identity);
-
-        //GameObject.Instantiate(FruitsObj[rand], fruitsSpanwPos.transform.position + Vector3.right * randf, Quaternion.identity);   
-        
+       
     }
-
-
 
     public void AddScore(LobbyPlayerController player)
     {
@@ -111,6 +118,67 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
 
         score = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
         scoreTxt.text = score.ToString(); 
+    }
+
+    IEnumerator GameEnd()
+    {
+        yield return new WaitForSeconds(1.0f);
+        int count = 15;
+
+        CountTxt.gameObject.SetActive(true);
+        while (count >= 0)
+        {
+            CountTxt.text = count.ToString();
+            count--;
+            yield return new WaitForSeconds(1.0f);
+        }
+
+        gameStart = false;
+
+        //GameEnd
+
+        //과일오브젝트 삭제
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {    
+            Fruits[] fruits = FindObjectsOfType<Fruits>();
+            Debug.Log(fruits.Length);
+            for (int i = 0; i < fruits.Length; i++)
+            {
+                PhotonNetwork.Destroy(fruits[i].gameObject);
+            }
+        }
+
+        CountTxt.text = "종료!!";
+        yield return new WaitForSeconds(1.0f);
+        CountTxt.text = "";
+
+        ResultPanel.SetActive(true);
+        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
+        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
+
+        int myscore = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
+        int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["score"];
+
+        myScoreTxt.text = myscore.ToString();
+        otherScoreTxt.text =otherscore.ToString();
+
+        if (myscore == otherscore)
+        {
+            winOrLose.text = "무승부";
+            winOrLose.color = Color.green;
+        }
+        else if(myscore > otherscore)
+        {
+            winOrLose.text = "승리";
+            winOrLose.color = Color.blue;
+        }
+        else if (myscore < otherscore)
+        {
+            winOrLose.text = "패배";
+            winOrLose.color = Color.red;
+        }
+
+
     }
 
 }

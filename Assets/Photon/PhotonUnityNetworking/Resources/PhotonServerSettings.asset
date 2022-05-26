@@ -42,6 +42,9 @@ MonoBehaviour:
   - RespawnSpaceship
   - GameStart
   - SetScoreTxt
+  - RollStart
+  - GameSelStart
+  - StartMiniGame
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

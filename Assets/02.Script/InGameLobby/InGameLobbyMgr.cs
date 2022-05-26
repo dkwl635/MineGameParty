@@ -11,6 +11,10 @@ public enum GameState
     GS_GameEnd,
 }
 
+public enum GameType
+{
+    FallingFruitGame,
+}
 
 public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 {
@@ -28,6 +32,7 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
 
     [Header("Game")]
+    public GameRollController GameRoll;
     public GameObject[] MiniGame;
 
 
@@ -109,6 +114,12 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
         pv.RPC("CheckReady", RpcTarget.MasterClient, isReady);
     }
 
+    public void GameStartBtn()
+    {
+        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
+        
+    }
+
     [PunRPC]
     public void CheckReady(bool isReady)
     {
@@ -121,18 +132,40 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
     }
 
-    public void GameStartBtn()
+    [PunRPC]
+    public void GameSelStart()
     {
-        pv.RPC("GameStart", RpcTarget.AllBufferedViaServer, 0);
-        //GameStart(MiniGame[0]);
+        roomCanavas.SetActive(false);
+        GameRoll.gameObject.SetActive(true);
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            StartCoroutine(StartSelGame());
+    }
+
+   IEnumerator StartSelGame()   //게임 돌림판 돌리기
+    {
+        yield return null;
+        int curGame = GameRoll.Roll();
+        yield return null;
+        
+        while(!GameRoll.EndRoll())
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(2.0f);
+
+
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
+       // pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, curGame);
+
     }
 
     [PunRPC]
-    public void GameStart(int idx)
+    void StartMiniGame(int idx)
     {
-        roomCanavas.SetActive(false);
-
-        MiniGame[idx].SetActive(true);
+        GameRoll.gameObject.SetActive(false);
+        MiniGame[idx].gameObject.SetActive(true);
     }
 
 }
