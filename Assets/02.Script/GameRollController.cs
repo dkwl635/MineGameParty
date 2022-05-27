@@ -33,20 +33,20 @@ public class GameRollController : MonoBehaviourPunCallbacks
         }
 
 
-            if (roll)
+        if (roll)
+        {
+            if (power < 1.0f)
             {
-                if (power < 1.0f)
-                {                 
-                    power = 0.0f;
-                    roll = false;
-                    endroll = true;
-                    return;
-                }
-
-                transform.Rotate(0, power, 0);
-                power *= 0.97f;
-
+                power = 0.0f;
+                roll = false;
+                endroll = true;
+                return;
             }
+
+            transform.Rotate(0, power, 0);
+            power *= 0.97f;
+
+        }
 
         if (endroll)
         {

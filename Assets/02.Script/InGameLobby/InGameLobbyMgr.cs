@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public enum GameState
 {
@@ -18,9 +19,14 @@ public enum GameType
 
 public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 {
+    public static InGameLobbyMgr Inst;
+
     //캐릭터 스폰 위치
     public GameObject spawnPos;
     PhotonView pv;
+
+    ExitGames.Client.Photon.Hashtable playerHash;
+    public ExitGames.Client.Photon.Hashtable PlayerHash { get { return playerHash; } }
 
     [Header("UI")]
     public GameObject roomCanavas;
@@ -29,6 +35,9 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
     public Button StartBtn;
     public Text myNickName;
     public Text ohterNickName;
+
+    public TextMeshProUGUI myWinCountTxt;
+    public TextMeshProUGUI otherWinCountTxt;
 
 
     [Header("Game")]
@@ -47,36 +56,49 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
+        Inst = this;
+
         Application.targetFrameRate = 60;
 
         //PhotonView 컴포넌트 할당
         pv = GetComponent<PhotonView>();
         //자기자신캐릭터 생성하는 함수 호출
-        CreatePlayer();
+
+        if (playerHash == null)
+            playerHash = new ExitGames.Client.Photon.Hashtable();
     }
 
     // Start is called before the first frame update
     void Start()
-    {
-        PhotonNetwork.IsMessageQueueRunning = true;
-       
-
+    { 
+        PhotonNetwork.IsMessageQueueRunning = true;    
+        CreatePlayer();
+ 
         StartBtn.gameObject.SetActive(false);
         
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
             readyBtn.gameObject.SetActive(false);
         else
             readyBtn.gameObject.SetActive(true);
-  
+
+
+        playerHash.Add("winCount", 0);
+        playerHash.Add("ready", false);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
     }
 
-    
+    private void Update()
+    {
+        CheckReady();
+        SetWinCount();
+    }
 
     void CreatePlayer()
     {
         Vector3 a_HPos = Vector3.zero;
         Vector3 a_AddPos = Vector3.zero;
         GameObject a_HPosObj = GameObject.Find("SpawnPos");
+        
         if (a_HPosObj != null)
         {
             a_AddPos.x = Random.Range(-2.0f, 2.0f);      
@@ -111,30 +133,52 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
             readyTxt.text = "준비";
         }
 
-        pv.RPC("CheckReady", RpcTarget.MasterClient, isReady);
+        playerHash["ready"] = isReady;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+      
     }
 
     public void GameStartBtn()
     {
-        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
-        
+        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);   
     }
 
-    [PunRPC]
-    public void CheckReady(bool isReady)
+
+    public void CheckReady()
     {
         if(!PhotonNetwork.LocalPlayer.IsMasterClient)
         {
             return;
         }
 
-        StartBtn.gameObject.SetActive(isReady);
+        if (PhotonNetwork.PlayerListOthers.Length <= 0)
+            return;
+
+        bool allReady = true;
+        var allPlayer = PhotonNetwork.PlayerListOthers;
+        foreach (var player in allPlayer)
+        {
+            if (player.CustomProperties.ContainsKey("ready"))
+            {
+                if (!(bool)player.CustomProperties["ready"])
+                    allReady = false;
+            }
+            else
+                allReady = false;
+        }
+
+        StartBtn.gameObject.SetActive(allReady);
 
     }
 
     [PunRPC]
     public void GameSelStart()
     {
+        isReady = false;
+        readyTxt.text = "준비";
+        playerHash["ready"] = isReady;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
         roomCanavas.SetActive(false);
         GameRoll.gameObject.SetActive(true);
 
@@ -157,8 +201,6 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
 
         pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
-       // pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, curGame);
-
     }
 
     [PunRPC]
@@ -168,4 +210,49 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
         MiniGame[idx].gameObject.SetActive(true);
     }
 
+
+    public void WinGame() //승리카운트
+    {
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;  
+        if (playerHash.ContainsKey("winCount"))
+        {
+            playerHash["winCount"] = (int)playerHash["winCount"] + 1;
+            PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+        }
+  
+    }
+
+    public void SetLobby()
+    {
+        roomCanavas.SetActive(true);
+        GameRoll.gameObject.SetActive(false);
+    
+        isReady = false;
+
+        StartBtn.gameObject.SetActive(false);
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            readyBtn.gameObject.SetActive(false);
+        else
+            readyBtn.gameObject.SetActive(true);
+
+    }
+
+    void SetWinCount()
+    {
+        if (PhotonNetwork.PlayerListOthers.Length <= 0)
+            return;
+
+        if(PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("winCount") && PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
+        {
+            int winCount = (int)PhotonNetwork.LocalPlayer.CustomProperties["winCount"];
+            if (winCount != 0)
+                myWinCountTxt.text = winCount + "승";
+
+            winCount = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["winCount"];
+            if (winCount != 0)
+                otherWinCountTxt.text = winCount + "승";
+        }
+
+    }
 }

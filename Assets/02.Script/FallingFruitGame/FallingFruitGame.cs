@@ -42,8 +42,13 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public TextMeshProUGUI otherScoreTxt;
     public TextMeshProUGUI winOrLose;
 
+    public GameObject ok_Btn;
+
     private int score = 0;
-    ExitGames.Client.Photon.Hashtable playerHash = new ExitGames.Client.Photon.Hashtable();
+    //플레이어 스코어 저장을 위한 테이블
+    //ExitGames.Client.Photon.Hashtable playerHash = new ExitGames.Client.Photon.Hashtable();
+    
+
     float timer = 0.0f;
     float nextSpawnTime = 1.0f;
 
@@ -55,30 +60,24 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         pv = GetComponent<PhotonView>();
     }
 
-    private void OnEnable()
+    public override void OnEnable()
     {
+        Debug.Log(PhotonNetwork.LocalPlayer.IsMasterClient);
         playerObj = GameObject.FindObjectsOfType<LobbyPlayerController>();
 
-        //서버에 점수 데이터 저장하기
-        playerHash.Add("score", 0);
-        score = 0;
-        scoreTxt.text = score.ToString();
-
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-        StartCoroutine(GameEnd());
+        StartCoroutine(GameStart());
     }
 
     private void Update()
     {
+        if (!gameStart)
+            return;
+
         SetScoreTxt();
 
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
             return;
-
-        if (!gameStart)
-            return;
-
+   
         timer += Time.deltaTime;
         if(timer >= nextSpawnTime)
         {
@@ -97,18 +96,25 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public void SpawnFruits()
     {
         int rand = Random.Range(0, (int)FruitsType.Max);
-        float randf = Random.Range(-3.0f, 3.0f);
+        float randx = Random.Range(-3.0f, 3.0f);
+        float randy = Random.Range(-0.3f, 0.3f);
 
         string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
-        PhotonNetwork.InstantiateRoomObject("Fruits/" + name, fruitsSpanwPos.transform.position + Vector3.right * randf, Quaternion.identity);
+        PhotonNetwork.InstantiateRoomObject("Fruits/" + name, fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);
        
     }
 
     public void AddScore(LobbyPlayerController player)
     {
         //i == 충돌된 플레이어넘버
-        playerHash["score"] = (int)player.pv.Owner.CustomProperties["score"] + 100;
-        player.pv.Owner.SetCustomProperties(playerHash);
+        ExitGames.Client.Photon.Hashtable playerHash = player.pv.Owner.CustomProperties;
+        if(playerHash.ContainsKey("score"))
+        {
+            playerHash["score"] = (int)playerHash["score"] + 100;
+            player.pv.Owner.SetCustomProperties(playerHash);
+            Debug.Log(player.pv.Owner.NickName);
+        }
+           
     }
 
     public void SetScoreTxt()
@@ -120,9 +126,22 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         scoreTxt.text = score.ToString(); 
     }
 
-    IEnumerator GameEnd()
+    IEnumerator GameStart()
     {
+        //서버에 점수 데이터 저장하기
+        if (!InGameLobbyMgr.Inst.PlayerHash.ContainsKey("score"))
+            InGameLobbyMgr.Inst.PlayerHash.Add("score", 0);
+        else
+            InGameLobbyMgr.Inst.PlayerHash["score"] = 0;
+
+        score = 0;
+        scoreTxt.text = score.ToString();
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(InGameLobbyMgr.Inst.PlayerHash);
+
         yield return new WaitForSeconds(1.0f);
+
+        gameStart = true;
         int count = 15;
 
         CountTxt.gameObject.SetActive(true);
@@ -141,7 +160,6 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {    
             Fruits[] fruits = FindObjectsOfType<Fruits>();
-            Debug.Log(fruits.Length);
             for (int i = 0; i < fruits.Length; i++)
             {
                 PhotonNetwork.Destroy(fruits[i].gameObject);
@@ -149,6 +167,8 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         }
 
         CountTxt.text = "종료!!";
+        yield return new WaitForSeconds(1.5f);
+        CountTxt.text = "결과발표";
         yield return new WaitForSeconds(1.0f);
         CountTxt.text = "";
 
@@ -156,21 +176,24 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
         otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
 
-        int myscore = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
+        int myscore = score;
         int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["score"];
 
+
         myScoreTxt.text = myscore.ToString();
-        otherScoreTxt.text =otherscore.ToString();
+        otherScoreTxt.text = otherscore.ToString();
 
         if (myscore == otherscore)
         {
             winOrLose.text = "무승부";
             winOrLose.color = Color.green;
         }
-        else if(myscore > otherscore)
+        else if (myscore > otherscore)
         {
             winOrLose.text = "승리";
             winOrLose.color = Color.blue;
+            //D
+            InGameLobbyMgr.Inst.WinGame();
         }
         else if (myscore < otherscore)
         {
@@ -178,7 +201,55 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
             winOrLose.color = Color.red;
         }
 
+        yield return new WaitForSeconds(2.0f);
 
+        ok_Btn.SetActive(true);
     }
+
+    void EndGame()
+    {
+        ResultPanel.SetActive(true);
+        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
+        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
+
+        int myscore = score;
+        int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["score"];
+
+      
+        myScoreTxt.text = myscore.ToString();
+        otherScoreTxt.text = otherscore.ToString();
+
+        if (myscore == otherscore)
+        {
+            winOrLose.text = "무승부";
+            winOrLose.color = Color.green;
+        }
+        else if (myscore > otherscore)
+        {
+            winOrLose.text = "승리";
+            winOrLose.color = Color.blue;
+
+            InGameLobbyMgr.Inst.WinGame();
+        }
+        else if (myscore < otherscore)
+        {
+            winOrLose.text = "패배";
+            winOrLose.color = Color.red;
+        }
+
+        
+    }
+
+  
+
+    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
+    {
+        ok_Btn.SetActive(false);
+        ResultPanel.SetActive(false);
+        this.gameObject.SetActive(false);
+
+        InGameLobbyMgr.Inst.SetLobby();
+    }
+
 
 }
