@@ -6,8 +6,12 @@ using UnityEngine;
 public class Fruits : MonoBehaviourPunCallbacks 
 {
     PhotonView pv;
-    float dis = 0.5f;
+
+    LobbyPlayerController player;
+    float dis = 10000.0f;
     float temp = 0;
+
+
     public override void OnEnable()
     {
         pv = GetComponent<PhotonView>();
@@ -21,17 +25,32 @@ public class Fruits : MonoBehaviourPunCallbacks
         //동시 충돌 알아보기
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
+            bool get = false;
             for (int i = 0; i < FallingFruitGame.Inst.playerObj.Length; i++)
             {
-             
-                if (Vector2.Distance(FallingFruitGame.Inst.playerObj[i].transform.position , transform.position) <= 0.5f)
+                temp = Vector2.Distance(FallingFruitGame.Inst.playerObj[i].transform.position, transform.position);
+                
+                if (temp <= 0.5f)
                 {
-                    FallingFruitGame.Inst.AddScore(FallingFruitGame.Inst.playerObj[i]);
-                    PhotonNetwork.Destroy(this.pv);
+                    get = true;                                  
+                    
+                    if(temp < dis)  //가장 가까운 유저
+                    {
+                        player = FallingFruitGame.Inst.playerObj[i];
+                        dis = temp;
+                    }             
                 }
-
+            
             }
+            
+            if(get)
+            {
+                FallingFruitGame.Inst.AddScore(player, this.transform.position);
+                PhotonNetwork.Destroy(this.pv);
+            }
+
         }
     }
+
 
 }

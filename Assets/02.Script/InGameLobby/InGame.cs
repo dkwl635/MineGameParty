@@ -1,9 +1,11 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public enum GameState
 {
@@ -17,9 +19,9 @@ public enum GameType
     FallingFruitGame,
 }
 
-public class InGameLobbyMgr : MonoBehaviourPunCallbacks
+public class InGame : MonoBehaviourPunCallbacks 
 {
-    public static InGameLobbyMgr Inst;
+    public static InGame Inst;
 
     //캐릭터 스폰 위치
     public GameObject spawnPos;
@@ -71,7 +73,10 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     { 
-        PhotonNetwork.IsMessageQueueRunning = true;    
+        PhotonNetwork.IsMessageQueueRunning = true;
+
+        ohterNickName.text = "플레이어 기달리는 중...";
+
         CreatePlayer();
  
         StartBtn.gameObject.SetActive(false);
@@ -84,7 +89,7 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);  
     }
 
     private void Update()
@@ -105,26 +110,62 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
 
-       GameObject character =  PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);
-     
+       GameObject character =  PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
     }
 
+    #region PlayerController
     public void MoveBtnDown(int h)
     {
         MoveStart?.Invoke(h); 
     }
-
     public void  MoveBtnUp(int h)
     {
         MoveEnd?.Invoke(h);
     }
+    #endregion
+
+    #region RoomController  
+    public void LeftRoom()
+    {
+        PhotonNetwork.LocalPlayer.CustomProperties.Clear();
+       
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.CurrentRoom.CustomProperties.Clear();       
+        }
+
+        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.JoinLobby();
+
+        SceneManager.LoadScene("ServerLobby");
+       
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        ohterNickName.text = "플레이어 기달리는 중...";
+        Debug.Log(otherPlayer.NickName + "나감");
+
+        StartBtn.gameObject.SetActive(false);
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            readyBtn.gameObject.SetActive(false);
+        else
+            readyBtn.gameObject.SetActive(true);
+    }
 
 
+    
+
+
+    #endregion
+
+    #region GameController
     public void ReadyBtn()
     {
         isReady = !isReady;
 
-        if(isReady)
+        if (isReady)
         {
             readyTxt.text = "준비완료";
         }
@@ -135,18 +176,14 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
 
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-      
     }
-
     public void GameStartBtn()
     {
-        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);   
+        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
     }
-
-
     public void CheckReady()
     {
-        if(!PhotonNetwork.LocalPlayer.IsMasterClient)
+        if (!PhotonNetwork.LocalPlayer.IsMasterClient)
         {
             return;
         }
@@ -186,13 +223,13 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
             StartCoroutine(StartSelGame());
     }
 
-   IEnumerator StartSelGame()   //게임 돌림판 돌리기
+    IEnumerator StartSelGame()   //게임 돌림판 돌리기
     {
         yield return null;
         int curGame = GameRoll.Roll();
         yield return null;
-        
-        while(!GameRoll.EndRoll())
+
+        while (!GameRoll.EndRoll())
         {
             yield return null;
         }
@@ -210,40 +247,22 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
         MiniGame[idx].gameObject.SetActive(true);
     }
 
-
     public void WinGame() //승리카운트
     {
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;  
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         if (playerHash.ContainsKey("winCount"))
         {
             playerHash["winCount"] = (int)playerHash["winCount"] + 1;
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         }
-  
-    }
-
-    public void SetLobby()
-    {
-        roomCanavas.SetActive(true);
-        GameRoll.gameObject.SetActive(false);
-    
-        isReady = false;
-
-        StartBtn.gameObject.SetActive(false);
-
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-            readyBtn.gameObject.SetActive(false);
-        else
-            readyBtn.gameObject.SetActive(true);
 
     }
-
     void SetWinCount()
     {
         if (PhotonNetwork.PlayerListOthers.Length <= 0)
             return;
 
-        if(PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("winCount") && PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
+        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("winCount") && PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
         {
             int winCount = (int)PhotonNetwork.LocalPlayer.CustomProperties["winCount"];
             if (winCount != 0)
@@ -255,4 +274,22 @@ public class InGameLobbyMgr : MonoBehaviourPunCallbacks
         }
 
     }
+    public void SetLobby()
+    {
+        roomCanavas.SetActive(true);
+        GameRoll.gameObject.SetActive(false);
+
+        isReady = false;
+
+        StartBtn.gameObject.SetActive(false);
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+            readyBtn.gameObject.SetActive(false);
+        else
+            readyBtn.gameObject.SetActive(true);
+
+    }
+    #endregion
+
+
 }

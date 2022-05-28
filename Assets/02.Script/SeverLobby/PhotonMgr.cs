@@ -43,12 +43,11 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     }
 
-
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-
+        
     }
+
 
     //저장된 닉네임 가져오기
     string GetUserNick()
@@ -78,7 +77,6 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     {
         Debug.Log("서버 접속 완료");
         //단순 포톤 서버 접속만 된 상태 (ConnectedToMaster)   
-        
         PhotonNetwork.JoinLobby();
     }
 

@@ -28,8 +28,8 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
 
     public GameObject fruitsSpanwPos;
 
-    //로컬용 테스트
-    public GameObject[] FruitsObj;
+    //과일 먹고 나올 이펙트
+    public GameObject collectObj;
 
     [Header("UI")]
     public TextMeshProUGUI scoreTxt;
@@ -45,9 +45,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public GameObject ok_Btn;
 
     private int score = 0;
-    //플레이어 스코어 저장을 위한 테이블
-    //ExitGames.Client.Photon.Hashtable playerHash = new ExitGames.Client.Photon.Hashtable();
-    
+  
 
     float timer = 0.0f;
     float nextSpawnTime = 1.0f;
@@ -66,6 +64,8 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         playerObj = GameObject.FindObjectsOfType<LobbyPlayerController>();
 
         StartCoroutine(GameStart());
+
+        SetScoreTxt();
     }
 
     private void Update()
@@ -73,7 +73,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         if (!gameStart)
             return;
 
-        SetScoreTxt();
+        //SetScoreTxt();
 
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
             return;
@@ -104,7 +104,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
        
     }
 
-    public void AddScore(LobbyPlayerController player)
+    public void AddScore(LobbyPlayerController player , Vector3 pos)
     {
         //i == 충돌된 플레이어넘버
         ExitGames.Client.Photon.Hashtable playerHash = player.pv.Owner.CustomProperties;
@@ -112,32 +112,61 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         {
             playerHash["score"] = (int)playerHash["score"] + 100;
             player.pv.Owner.SetCustomProperties(playerHash);
-            Debug.Log(player.pv.Owner.NickName);
-        }
-           
+
+            pv.RPC("SetScoreTxt", player.pv.Owner);
+            pv.RPC("SpawnCollect", player.pv.Owner, pos);
+        }          
     }
 
+  
+   [PunRPC]
     public void SetScoreTxt()
     {
+        Debug.Log("점수 얻음");
+
         if (PhotonNetwork.LocalPlayer.CustomProperties["score"] == null)
+        {
+            scoreTxt.text = "0";
             return;
+        }
+        
 
         score = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
         scoreTxt.text = score.ToString(); 
     }
 
+    [PunRPC]
+    void SpawnCollect(Vector3 pos)
+    {
+        GameObject collect = Instantiate(collectObj, pos, Quaternion.identity);
+        Destroy(collect, 0.5f);
+
+    }
+
+    public IEnumerator DestroyAfter(GameObject fruit, float delay)
+    {
+        fruit.SetActive(false);
+
+        yield return new WaitForSeconds(delay);
+
+        if(fruit)
+        {
+            PhotonNetwork.Destroy(fruit);
+        }
+    }
+
     IEnumerator GameStart()
     {
         //서버에 점수 데이터 저장하기
-        if (!InGameLobbyMgr.Inst.PlayerHash.ContainsKey("score"))
-            InGameLobbyMgr.Inst.PlayerHash.Add("score", 0);
+        if (!InGame.Inst.PlayerHash.ContainsKey("score"))
+            InGame.Inst.PlayerHash.Add("score", 0);
         else
-            InGameLobbyMgr.Inst.PlayerHash["score"] = 0;
+            InGame.Inst.PlayerHash["score"] = 0;
 
         score = 0;
         scoreTxt.text = score.ToString();
 
-        PhotonNetwork.LocalPlayer.SetCustomProperties(InGameLobbyMgr.Inst.PlayerHash);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(InGame.Inst.PlayerHash);
 
         yield return new WaitForSeconds(1.0f);
 
@@ -193,7 +222,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
             winOrLose.text = "승리";
             winOrLose.color = Color.blue;
             //D
-            InGameLobbyMgr.Inst.WinGame();
+            InGame.Inst.WinGame();
         }
         else if (myscore < otherscore)
         {
@@ -229,7 +258,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
             winOrLose.text = "승리";
             winOrLose.color = Color.blue;
 
-            InGameLobbyMgr.Inst.WinGame();
+            InGame.Inst.WinGame();
         }
         else if (myscore < otherscore)
         {
@@ -248,7 +277,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         ResultPanel.SetActive(false);
         this.gameObject.SetActive(false);
 
-        InGameLobbyMgr.Inst.SetLobby();
+        InGame.Inst.SetLobby();
     }
 
 

@@ -35,7 +35,7 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
     // Start is called before the first frame update
     void Start()
     {
-        InGameLobbyMgr gameMgr = FindObjectOfType<InGameLobbyMgr>();
+        InGame gameMgr = FindObjectOfType<InGame>();
 
         if (pv.IsMine)//내 캐릭터 등록 시키기
         {
@@ -47,9 +47,6 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
             gameMgr.MoveStart += MoveStart;
             gameMgr.MoveEnd += MoveEnd;
-
-
-
         }
         else
         {
