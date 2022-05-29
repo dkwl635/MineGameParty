@@ -7,17 +7,19 @@ using TMPro;
 
 public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
 {
-    Rigidbody2D rigidbody;
+    Rigidbody2D rigidbody; 
     Animator animator;
     SpriteRenderer spriteRenderer;
     [HideInInspector]public PhotonView pv;
 
+    //플레이어 닉네임 
     public TextMeshPro nickNameTxt;
 
-    [SerializeField] int h = 0;
+    //방향 값과 이동속도 값    
+    [SerializeField] int h = 0; 
     [SerializeField]  Vector2 velocity = Vector2.zero;
 
-    //원격 조종용 변수
+    //원격 조종용 변수 (동기화를 위한)
     public Vector3 currPos = Vector3.zero; //위치
     int currH = 0; //현재 위치 방향 및 속도 
     float isOnece = 0.02f;  //첫 동기화를 위해
@@ -42,23 +44,22 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             gameMgr.player = this;
             gameMgr.myNickName.text = pv.Owner.NickName;
             nickNameTxt.color = Color.green;
-
+            //내캐릭이 먼저 보이게하게
             transform.position -= Vector3.forward;
 
+            //이동관련 이벤트 연결시키기
             gameMgr.MoveStart += MoveStart;
             gameMgr.MoveEnd += MoveEnd;
         }
         else
         {
+            //원격  동기화는 적용안함
             rigidbody.gravityScale = 0.0f;
             gameMgr.ohterNickName.text = pv.Owner.NickName;
             nickNameTxt.color = Color.blue;
         }
 
         nickNameTxt.text = pv.Owner.NickName;
-
-     
-
     }
 
     private void Update()
@@ -82,6 +83,7 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 isOnece -= Time.deltaTime;
                 if (isOnece <= 0.0f)
                 {
+                    currPos.y = 0;
                     transform.position = currPos;
                 }
 
@@ -105,28 +107,24 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
+    //움직이기 시작할때
     public void MoveStart(int h)
     {
         this.h += h;
 
-        if(this.h.Equals(-1))       
-            spriteRenderer.flipX = true;     
-        else if (this.h.Equals(1))    
-            spriteRenderer.flipX = false;
-
-    
-
-        if (this.h.Equals(0))
-            animator.SetBool("move", false);
-        else
-            animator.SetBool("move", true);
-
+        SetAnim();
     }
 
+    //움직이는 버튼에서 손을때면
     public void MoveEnd(int h)
     {
         this.h -= h;
+      
+        SetAnim();
+    }
 
+    void SetAnim()//이미지 , 애니메이션 변경
+    {
         if (this.h.Equals(-1))
             spriteRenderer.flipX = true;
         else if (this.h.Equals(1))
@@ -138,9 +136,9 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             animator.SetBool("move", true);
     }
 
+    //원격동기화
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     { 
-
         //로컬 플레이어의 위치 정보 송신
         if (stream.IsWriting)
         {

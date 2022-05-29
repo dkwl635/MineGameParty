@@ -7,47 +7,42 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
-public enum GameState
-{
-    GS_Ready = 0,
-    GS_Playing, 
-    GS_GameEnd,
-}
-
-public enum GameType
+public enum GameType    //미니 게임 종류
 {
     FallingFruitGame,
 }
 
 public class InGame : MonoBehaviourPunCallbacks 
 {
-    public static InGame Inst;
+    public static InGame Inst; //싱글턴을 위한
 
     //캐릭터 스폰 위치
-    public GameObject spawnPos;
-    PhotonView pv;
+    public GameObject spawnPos; //게임입장시 중심 스폰위치
+    PhotonView pv;  //포톤 동기화를 위한 포톤뷰
 
-    ExitGames.Client.Photon.Hashtable playerHash;
-    public ExitGames.Client.Photon.Hashtable PlayerHash { get { return playerHash; } }
+    //동기화를 위한 변수 선언
+    ExitGames.Client.Photon.Hashtable playerHash; 
+   
 
+   
     [Header("UI")]
-    public GameObject roomCanavas;
-    public Button readyBtn;
-    public Text readyTxt;
-    public Button StartBtn;
-    public Text myNickName;
-    public Text ohterNickName;
+    public GameObject roomCanavas;  //게임 방 정보 창
+    public Button readyBtn;                 //레디 버튼    ... 반장은 없는 버튼
+    public Text readyTxt;                     //레디 버튼 (준비완료, 준비) 를 나타낼 텍스트
+    public Button StartBtn;                  //시작 버튼 .... 반장만 나올 버튼
+    public Text myNickName;               // 내닉네임 
+    public Text ohterNickName;             //상대 닉네임
 
-    public TextMeshProUGUI myWinCountTxt;
-    public TextMeshProUGUI otherWinCountTxt;
+    public TextMeshProUGUI myWinCountTxt;   //내 승점
+    public TextMeshProUGUI otherWinCountTxt;    //상대 승점
 
 
     [Header("Game")]
-    public GameRollController GameRoll;
-    public GameObject[] MiniGame;
+    public GameRollController GameRoll; //게임 선택을 위한 룰러 
+    public GameObject[] MiniGame;       //미니게임이 담겨있는
 
 
-    //내가 조종하는 캐릭터
+    //내가 조종하는 캐릭터  이동 연결을 위한 이벤트 함수
     public delegate void MoveBtnEvent(int h);
     public MoveBtnEvent MoveStart;
     public MoveBtnEvent MoveEnd;
@@ -60,6 +55,7 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         Inst = this;
 
+        //전체적인 프레임을 맞춰주기 위한
         Application.targetFrameRate = 60;
 
         //PhotonView 컴포넌트 할당
@@ -73,12 +69,16 @@ public class InGame : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     { 
+        //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
 
+        //첫 셋팅
         ohterNickName.text = "플레이어 기달리는 중...";
 
+        //플레이어들 만들기
         CreatePlayer();
  
+        //버튼 UI 셋팅하기
         StartBtn.gameObject.SetActive(false);
         
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
@@ -87,6 +87,7 @@ public class InGame : MonoBehaviourPunCallbacks
             readyBtn.gameObject.SetActive(true);
 
 
+        //플레이어 정보 SetCustomProperties 시키기
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);  
@@ -94,12 +95,14 @@ public class InGame : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-        CheckReady();
-        SetWinCount();
+        //실시간 레디 체크
+        CheckReady(); 
+        //SetWinCount();
     }
 
-    void CreatePlayer()
+    void CreatePlayer() //캐릭터 만들기
     {
+        //랜덤한 위치에 만들어주기
         Vector3 a_HPos = Vector3.zero;
         Vector3 a_AddPos = Vector3.zero;
         GameObject a_HPosObj = GameObject.Find("SpawnPos");
@@ -110,10 +113,14 @@ public class InGame : MonoBehaviourPunCallbacks
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
 
-       GameObject character =  PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
+        //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
+        //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
+        //내 케릭터만 떨어지는 모습을 볼수 있다.
+       PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
     }
 
-    #region PlayerController
+    #region PlayerController 플레이어 컨트롤러에 등록될 함수들
+    
     public void MoveBtnDown(int h)
     {
         MoveStart?.Invoke(h); 
@@ -124,23 +131,29 @@ public class InGame : MonoBehaviourPunCallbacks
     }
     #endregion
 
-    #region RoomController  
-    public void LeftRoom()
+    #region RoomController   //서버 관련 함수
+    public void LeftRoom() //방을나갈려는 함수
     {
+        //저장된 CustomProperties 초기화 시켜주기
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
-       
+
+        //만약 방장이면   룸에 대한CustomProperties 초기화 시켜주기
         if (PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.CurrentRoom.CustomProperties.Clear();       
         }
 
+        //방을 떠나고 다시 로비로 접속하기
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.JoinLobby();
 
+        //씬 전환해주기
         SceneManager.LoadScene("ServerLobby");
        
     }
 
+    //만액 다른 플레이어가 나간다면 // 이함수는 방에있는 모든 플레이어가 호출된다. 하지만 방에는 2명 제한이라
+    //1명만 남겠된다.
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         ohterNickName.text = "플레이어 기달리는 중...";
@@ -155,13 +168,11 @@ public class InGame : MonoBehaviourPunCallbacks
     }
 
 
-    
-
 
     #endregion
 
-    #region GameController
-    public void ReadyBtn()
+    #region GameController 게임 진행 관련 함수
+    public void ReadyBtn()  //레디 버튼 
     {
         isReady = !isReady;
 
@@ -174,23 +185,22 @@ public class InGame : MonoBehaviourPunCallbacks
             readyTxt.text = "준비";
         }
 
+        //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
     }
-    public void GameStartBtn()
+    public void CheckReady() //래디를 확인하는 함수
     {
-        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
-    }
-    public void CheckReady()
-    {
+        //오로지 마스터 클라이언트만 확인 
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
             return;
-        }
 
+        //방에 혼자면 할 필요 없음
         if (PhotonNetwork.PlayerListOthers.Length <= 0)
             return;
 
+        //모든 유저 체크 
+        
         bool allReady = true;
         var allPlayer = PhotonNetwork.PlayerListOthers;
         foreach (var player in allPlayer)
@@ -202,12 +212,17 @@ public class InGame : MonoBehaviourPunCallbacks
             }
             else
                 allReady = false;
-        }
-
+        }      
         StartBtn.gameObject.SetActive(allReady);
 
     }
 
+    public void GameStartBtn() //반장만 누를수 있는버튼
+    {
+        //모든 플레이어에게 전달해 게임을진행한다.
+        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
+    }
+  
     [PunRPC]
     public void GameSelStart()
     {
@@ -226,29 +241,32 @@ public class InGame : MonoBehaviourPunCallbacks
     IEnumerator StartSelGame()   //게임 돌림판 돌리기
     {
         yield return null;
-        int curGame = GameRoll.Roll();
+        int curGame = GameRoll.Roll(); //돌림판을 돌려나온 다음 게임 번호
+
         yield return null;
 
-        while (!GameRoll.EndRoll())
+        while (!GameRoll.EndRoll()) //돌림판이 멈추면
         {
             yield return null;
         }
 
         yield return new WaitForSeconds(2.0f);
 
-
+        // 정해진 미니게임 시작하기
         pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
     }
 
     [PunRPC]
     void StartMiniGame(int idx)
     {
+        //정해진 미니게임 활성화 하기
         GameRoll.gameObject.SetActive(false);
         MiniGame[idx].gameObject.SetActive(true);
     }
 
     public void WinGame() //승리카운트
     {
+        //CustomProperties를 가져와 승점을 올려주고 저장해주기
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         if (playerHash.ContainsKey("winCount"))
         {
@@ -259,6 +277,8 @@ public class InGame : MonoBehaviourPunCallbacks
     }
     void SetWinCount()
     {
+        //로비 창에 승점 보여주기
+
         if (PhotonNetwork.PlayerListOthers.Length <= 0)
             return;
 
@@ -274,7 +294,7 @@ public class InGame : MonoBehaviourPunCallbacks
         }
 
     }
-    public void SetLobby()
+    public void SetLobby()// 로비 창 새로고침
     {
         roomCanavas.SetActive(true);
         GameRoll.gameObject.SetActive(false);
@@ -287,6 +307,8 @@ public class InGame : MonoBehaviourPunCallbacks
             readyBtn.gameObject.SetActive(false);
         else
             readyBtn.gameObject.SetActive(true);
+
+        SetWinCount();
 
     }
     #endregion

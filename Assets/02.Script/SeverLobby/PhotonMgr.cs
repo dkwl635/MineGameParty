@@ -25,9 +25,9 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     public GameObject roomItem;
     List<RoomInfo> myList = new List<RoomInfo>();
 
-
     private void Awake()
     {
+ 
         PhotonNetwork.SendRate = 40;            
         PhotonNetwork.SerializationRate = 20;
 
@@ -42,12 +42,6 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         userNick.text = GetUserNick();
 
     }
-
-    private void Start()
-    {
-        
-    }
-
 
     //저장된 닉네임 가져오기
     string GetUserNick()
@@ -64,8 +58,9 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         return userNick;
     }
 
+
 #if UNITY_EDITOR && !(UNITY_IPHONE || UNITY_ANDROID)
-    void OnGUI()
+    void OnGUI()    //현재 접속상태를 보기 위하여
     {
         string a_str = PhotonNetwork.NetworkClientState.ToString();
         //현재 포톤의 상태를 string으로 리턴해 주는 함수
@@ -73,6 +68,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
                     "<color=#ff0000><size=50>" + a_str + "</size></color>");
     }
     #endif
+
     public override void OnConnectedToMaster()
     {
         Debug.Log("서버 접속 완료");
@@ -164,15 +160,6 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         //인자로 전달된 이름에 해당하는 룸으로 입장
         PhotonNetwork.JoinRoom(roomName);
     }
-
-    //생성된 룸 목록이 변경됐을 때 호출되는 콜백 함수
-    //방 리스트 갱신은 로비에서만 가능하다.
-    //   내가 로비로 진입할 때도 OnRoomListUpdate() 함수를 받고
-    //   누군가 방을 새로 만들거나 방이 파괴될 때도 OnRoomListUpdate() 함수를 받는다.
-    //   A가 로비에서 대기하고 있는데 B가 방을 만들고 들어가면 OnRoomListUpdate()가 로비에서 대기하고 있었던 A쪽에서 호출된다.
-    //   B가 방을 만들면서 들어갈 때는 roomList[i].RemoveFromList == false가 되고,
-    //   B가 방을 떠나면서 방이 제거되야 할 때 roomList[i].RemoveFromList == true가 될 것이다.
-    //   A가 로그아웃(포톤서버에 접속끊기) 했다가 다시 로비까지 들어 올 때도 OnRoomListUpdate() 함수를 받게 된다.
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {

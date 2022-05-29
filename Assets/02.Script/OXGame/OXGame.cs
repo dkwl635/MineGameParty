@@ -29,12 +29,22 @@ public class OXGame : MonoBehaviourPunCallbacks
     public GameObject O_Btn;
     public GameObject X_Btn;
 
+    public GameObject userChoose_Img;
+    public TextMeshProUGUI userChoose_Txt;
 
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
     }
     private void Start()
+    {
+        QuestionTableSet();
+    
+        ProblemTxt.text = questionList[0].Key;
+        StartCoroutine(GameStart());
+    }
+
+    void QuestionTableSet() //문제 테이블 셋팅하기
     {
         questionList.Add(new KeyValuePair<string, OX>("문어다리는 10개이다", OX.O));
         questionList.Add(new KeyValuePair<string, OX>("달팽이도 이빨이 있다.", OX.O));
@@ -44,10 +54,6 @@ public class OXGame : MonoBehaviourPunCallbacks
         questionList.Add(new KeyValuePair<string, OX>("BUS라는 단어는 미국에서 처음 사용하였다", OX.X));
         questionList.Add(new KeyValuePair<string, OX>("닭도 왼발잡이 , 오른발잡이가 있다.", OX.O));
         questionList.Add(new KeyValuePair<string, OX>("새는 뒤로도 날 수 있다.", OX.O));
-
-
-        ProblemTxt.text = questionList[0].Key;
-        StartCoroutine(GameStart());
     }
 
     public  void GameStart1()
@@ -83,14 +89,44 @@ public class OXGame : MonoBehaviourPunCallbacks
     }
 
 
-    public void Choose_OBtn ()
+    public void Choose_OBtn ()  //유저 선택  O
     {
         userChoose = OX.O;
+
+        OnUserChoose();
     }
 
-    public void Choose_XBtn()
+    public void Choose_XBtn()//유저 선택  X
     {
         userChoose = OX.X;
+
+        OnUserChoose();
+    }
+
+    void OnUserChoose()
+    {
+        userChoose_Img.SetActive(true);
+       
+        //버튼 비활성화
+        O_Btn.SetActive(false);
+        X_Btn.SetActive(false);
+
+        if (userChoose.Equals(OX.O))
+        {
+            userChoose_Txt.text = "O";
+            userChoose_Txt.color = Color.blue;
+        }
+        else if(userChoose.Equals(OX.X))
+        {
+            userChoose_Txt.text = "X";
+            userChoose_Txt.color = Color.red;
+        }
+        else
+        {
+            userChoose_Txt.text = "";
+      
+        }
+       
     }
 
 }
