@@ -22,8 +22,7 @@ public class InGame : MonoBehaviourPunCallbacks
 
     //동기화를 위한 변수 선언
     ExitGames.Client.Photon.Hashtable playerHash; 
-   
-
+  
    
     [Header("UI")]
     public GameObject roomCanavas;  //게임 방 정보 창

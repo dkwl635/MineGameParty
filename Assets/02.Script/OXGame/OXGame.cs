@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
 
-public class OXGame : MonoBehaviourPunCallbacks
+public class OXGame : MonoBehaviourPunCallbacks , IPunObservable
 {
     PhotonView pv;
 
@@ -17,20 +18,40 @@ public class OXGame : MonoBehaviourPunCallbacks
 
 
     //문제가 나오는 Text
-    public TextMeshProUGUI ProblemTxt;
+    public TextMeshProUGUI questionTxt;
     //문제 테이블
     List<KeyValuePair<string, OX>> questionList = new List<KeyValuePair<string, OX>>();
     //문제 번호가 저장되어있는
     List<int> questionNum = new List<int>();
+    int curQuestionNum = 0;
+
 
     //플레이어가 선택한것
-    OX userChoose = OX.None;
+    OX myChoose = OX.None;
 
+    //OX 선택 버튼
     public GameObject O_Btn;
     public GameObject X_Btn;
 
-    public GameObject userChoose_Img;
-    public TextMeshProUGUI userChoose_Txt;
+    [Header("UI")]
+    public TextMeshProUGUI myNickName;
+    public TextMeshProUGUI OhterNickName;
+
+    //플레이어들이 선택한 것
+    public GameObject myChoose_Img;
+    public TextMeshProUGUI myChoose_Txt;
+    public GameObject ohterChoose_Img;
+    public TextMeshProUGUI ohterChoose_Txt;
+
+    //정답이펙트
+    public GameObject myAnswerEffect;
+    public GameObject OhterAnswerEffect;
+
+    //타이머
+    public Image gageBar;
+    public float timer = 10.0f;
+
+     
 
     private void Awake()
     {
@@ -40,8 +61,16 @@ public class OXGame : MonoBehaviourPunCallbacks
     {
         QuestionTableSet();
     
-        ProblemTxt.text = questionList[0].Key;
+        questionTxt.text = questionList[0].Key;
         StartCoroutine(GameStart());
+    }
+
+    private void Update()
+    {
+        if (timer >= 0)
+            timer -= Time.deltaTime;
+
+        gageBar.fillAmount = timer / 10.0f;
     }
 
     void QuestionTableSet() //문제 테이블 셋팅하기
@@ -91,42 +120,77 @@ public class OXGame : MonoBehaviourPunCallbacks
 
     public void Choose_OBtn ()  //유저 선택  O
     {
-        userChoose = OX.O;
+        myChoose = OX.O;
 
         OnUserChoose();
     }
 
     public void Choose_XBtn()//유저 선택  X
     {
-        userChoose = OX.X;
+        myChoose = OX.X;
 
         OnUserChoose();
     }
 
     void OnUserChoose()
     {
-        userChoose_Img.SetActive(true);
+        myChoose_Img.SetActive(true);
+        questionTxt.gameObject.SetActive(true);
        
         //버튼 비활성화
         O_Btn.SetActive(false);
         X_Btn.SetActive(false);
 
-        if (userChoose.Equals(OX.O))
+        if (myChoose.Equals(OX.O))
         {
-            userChoose_Txt.text = "O";
-            userChoose_Txt.color = Color.blue;
+            myChoose_Txt.text = "O";
+            myChoose_Txt.color = Color.blue;
         }
-        else if(userChoose.Equals(OX.X))
+        else if(myChoose.Equals(OX.X))
         {
-            userChoose_Txt.text = "X";
-            userChoose_Txt.color = Color.red;
+            myChoose_Txt.text = "X";
+            myChoose_Txt.color = Color.red;
         }
         else
         {
-            userChoose_Txt.text = "";
+            myChoose_Txt.text = "";
       
         }
-       
+
+        //test
+        OnCheckOX();
+
+
     }
+
+    void OnOtherChoose()
+    {
+
+    }
+
+    void OnCheckOX()
+    {
+        if(myChoose == questionList[curQuestionNum].Value)
+        {
+            myAnswerEffect.SetActive(true);
+        }
+
+    }
+
+    
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if(stream.IsWriting)
+        {
+            stream.SendNext(timer);
+        }
+        else
+        {
+            timer = (float)stream.ReceiveNext();
+        }
+     
+    }
+
 
 }
