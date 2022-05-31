@@ -112,10 +112,15 @@ public class InGame : MonoBehaviourPunCallbacks
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
 
+        if (pv.IsMine)      
+            a_HPos.z = -1;      
+        else
+            a_HPos.z = 0;
+
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-       PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
+        PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
     }
 
     #region PlayerController 플레이어 컨트롤러에 등록될 함수들
@@ -219,7 +224,7 @@ public class InGame : MonoBehaviourPunCallbacks
     public void GameStartBtn() //반장만 누를수 있는버튼
     {
         //모든 플레이어에게 전달해 게임을진행한다.
-        pv.RPC("GameSelStart", RpcTarget.AllBufferedViaServer);
+        pv.RPC("GameSelStart", RpcTarget.AllViaServer);
     }
   
     [PunRPC]
@@ -252,7 +257,7 @@ public class InGame : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 1);
     }
 
     [PunRPC]

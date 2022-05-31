@@ -47,6 +47,8 @@ MonoBehaviour:
   - StartMiniGame
   - LeftPlayer
   - SpawnCollect
+  - SetTextQuestion
+  - StartPosSet
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

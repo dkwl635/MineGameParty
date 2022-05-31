@@ -152,7 +152,7 @@ MonoBehaviour:
   nickNameTxt: {fileID: 4567891877612675418}
   h: 0
   velocity: {x: 0, y: 0}
-  currPos: {x: 0, y: 0, z: 0}
+  currPos: {x: 0, y: 0}
 --- !u!95 &204309624633745975
 Animator:
   serializedVersion: 3

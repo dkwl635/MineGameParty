@@ -2131,6 +2131,7 @@ MonoBehaviour:
   GameRoll: {fileID: 132873355}
   MiniGame:
   - {fileID: 4471713813381205451}
+  - {fileID: 4628468973658954759}
   player: {fileID: 0}
 --- !u!1 &1197033866
 GameObject:
@@ -4619,7 +4620,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: X
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
   m_sharedMaterial: {fileID: 3257245781535115989, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
@@ -5208,8 +5209,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
-  m_sharedMaterial: {fileID: 3257245781535115989, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
+  m_sharedMaterial: {fileID: 2806262105400262100, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -5732,13 +5733,13 @@ MonoBehaviour:
   O_Btn: {fileID: 4628468974024785624}
   X_Btn: {fileID: 4628468973778377721}
   myNickName: {fileID: 4628468973517216087}
-  OhterNickName: {fileID: 4628468972691747554}
+  otherNickName: {fileID: 4628468972691747554}
   myChoose_Img: {fileID: 4628468973523039457}
   myChoose_Txt: {fileID: 4628468972597831522}
-  ohterChoose_Img: {fileID: 4628468974467363378}
+  otherChoose_Img: {fileID: 4628468974467363378}
   ohterChoose_Txt: {fileID: 4628468973947722632}
   myAnswerEffect: {fileID: 4628468973922631324}
-  OhterAnswerEffect: {fileID: 4628468972613815897}
+  ohterAnswerEffect: {fileID: 4628468972613815897}
   gageBar: {fileID: 4628468972924977118}
   timer: 10
 --- !u!4 &4628468973658954757

@@ -20,7 +20,7 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField]  Vector2 velocity = Vector2.zero;
 
     //원격 조종용 변수 (동기화를 위한)
-    public Vector3 currPos = Vector3.zero; //위치
+    public Vector2 currPos = Vector2.zero; //위치
     int currH = 0; //현재 위치 방향 및 속도 
     float isOnece = 0.02f;  //첫 동기화를 위해
 
@@ -67,7 +67,6 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
         Move_Update();
     }
 
-
     void Move_Update()
     {
         if (pv.IsMine) //내가 조종할때
@@ -83,23 +82,20 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 isOnece -= Time.deltaTime;
                 if (isOnece <= 0.0f)
                 {
-                    currPos.y = 0;
                     transform.position = currPos;
                 }
 
                 return;
             }
-
-
             //기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
-            if (1.0f < (transform.position - currPos).magnitude)
-            {
+            if (1.0f < ((Vector2)transform.position - currPos).magnitude)
+            {  
                 transform.position = currPos;
             }
             else
             {
                 //원격 플레이어의 플레이어를 수신받은 위치까지 부드럽게 이동시킴
-                transform.position = Vector3.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
+                transform.position = Vector2.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
             }
 
         }
@@ -142,13 +138,13 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
         //로컬 플레이어의 위치 정보 송신
         if (stream.IsWriting)
         {
-            stream.SendNext(transform.position);    //위치
+            stream.SendNext((Vector2)transform.position);    //위치
             stream.SendNext(h);    //위치
             stream.SendNext(spriteRenderer.flipX ? 1 : 0);     
         }
         else //원격 플레이어의 위치 정보 수신
         {
-            currPos = (Vector3)stream.ReceiveNext();        
+            currPos = (Vector2)stream.ReceiveNext();        
             currH = (int)stream.ReceiveNext();
             spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
            
@@ -158,5 +154,11 @@ public class LobbyPlayerController : MonoBehaviourPunCallbacks, IPunObservable
             else
                 animator.SetBool("move", true);
         }
+    }
+
+    [PunRPC]
+    void StartPosSet(Vector2 pos)
+    {
+        transform.position = pos;
     }
 }
