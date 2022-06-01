@@ -10,7 +10,8 @@ public class AnswerEffect : MonoBehaviour
     private int count = 4;
     private float timer = 0.0f;
 
-    
+    private Color originColor;
+
     private void Update()
     {
         if (count <= 0)
@@ -21,7 +22,7 @@ public class AnswerEffect : MonoBehaviour
         if(timer >= 0.2f)
         {
             timer = 0.0f;
-            text.color = text.color.a == 0 ? Color.blue : Color.clear;
+            text.color = text.color.a == 0 ? originColor : Color.clear;
             count--;
         }
 
@@ -36,5 +37,6 @@ public class AnswerEffect : MonoBehaviour
     {
         count = 4;
         timer = 0.0f;
+        originColor = text.color;
     }
 }

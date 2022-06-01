@@ -48,17 +48,16 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     public TextMeshProUGUI ohterChoose_Txt;
 
     //정답이펙트
-    public GameObject myAnswerEffect;
-    public GameObject ohterAnswerEffect;
+    public TextMeshProUGUI myAnswerEffect;
+    public TextMeshProUGUI ohterAnswerEffect;
+ 
 
     //타이머
     public Image gageBar;
-    public float timer = 10.0f;
+    float timer = 0.0f;
 
     //동기화를 위한 변수 선언
     ExitGames.Client.Photon.Hashtable playerHash;
-
-
 
     private void Awake()
     {
@@ -127,27 +126,21 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
         while (curQuestionNum <= 5)
         {
-
             questionTxt.text = (curQuestionNum+1) + "번 문제";
-            yield return new WaitForSeconds(1.0f);
-
-            O_Btn.SetActive(true);
-            X_Btn.SetActive(true);
-
+            yield return new WaitForSeconds(1.0f);      
             //문제 내기 방장만
             if (PhotonNetwork.IsMasterClient)
             {
-                pv.RPC("SetTextQuestion", RpcTarget.AllViaServer, (int)questionNum[curQuestionNum]);
-                curQuestionNum++;
+                pv.RPC("SetTextQuestion", RpcTarget.AllViaServer, (int)questionNum[curQuestionNum]);            
             }
-            yield return new WaitForSeconds(1.0f);
 
+         
+            yield return new WaitForSeconds(0.5f);
+            timer = 10.0f;
 
             //모든 플레이어가 결정할때까지 대기 //또는 시간이 다지나면
             //플레이어가 선택한것 보여주기
-
             choose = false;
-            timer = 10.0f;
             while (timer >= 0) //타이머 돌때까지 루프
             {
                 yield return null;
@@ -158,12 +151,13 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
                 }
             }
 
-            questionTxt.text = "타임오버";            
+            questionTxt.text = "타임오버";                
             Choose_TimeOver();
+            yield return new WaitForSeconds(0.5f);
+            questionTxt.text = "정답은";
 
-
-            yield return new WaitForSeconds(1.0f);
             //시간 종료후
+            yield return new WaitForSeconds(1.0f);
             //결과 보여주기
             OnCheckOX(); //OX 맞춘거 카운터       
             yield return new WaitForSeconds(2.0f);
@@ -184,9 +178,11 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     void SetTextQuestion(int num)   //방장쪽에서 정해진 문제 재출
     {
-        Debug.Log(num);
+        questionTxt.text = (curQuestionNum+1) +"번 문제\n"+ questionList[num].Key;
         curQuestionNum++;
-        questionTxt.text = questionList[num].Key;
+
+        O_Btn.SetActive(true);
+        X_Btn.SetActive(true);
     }
 
 
@@ -294,21 +290,15 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             if (temp > 3.0f)
                 temp = 0.0f;
         }
-
-        if(timer <= 0.0f && otherChoose.Equals(OX.None))
-        {
-            //시간초과가 되서 나온거라면
-            ohterChoose_Txt.text = "";
-        }
     }
 
     void OnCheckOX()//정답 확인
     {
-        if(myChoose == questionList[curQuestionNum].Value)
-        {
-            //효과 만
-            myAnswerEffect.SetActive(true);
-
+        myAnswerEffect.gameObject.SetActive(true);
+        if (myChoose == questionList[curQuestionNum].Value)
+        {  
+            myAnswerEffect.text = "O";
+            myAnswerEffect.color = Color.blue;
 
             //각자 정답인 사람이 각자클라이언트에서 업데이트 해준다.
             playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
@@ -320,11 +310,23 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         }
-
-        //효과 만
-        if(otherChoose == questionList[curQuestionNum].Value)
+        else
         {
-            ohterAnswerEffect.SetActive(true);
+            myAnswerEffect.text = "X";
+            myAnswerEffect.color = Color.red;
+        }
+
+        ohterAnswerEffect.gameObject.SetActive(true);
+        //효과 만
+        if (otherChoose == questionList[curQuestionNum].Value)
+        {
+            ohterAnswerEffect.text = "O";
+            ohterAnswerEffect.color = Color.blue;
+        }
+        else
+        {
+            ohterAnswerEffect.text = "X";
+            ohterAnswerEffect.color = Color.red;
         }
 
     }
@@ -334,8 +336,8 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         O_Btn.SetActive(true);
         X_Btn.SetActive(true);
 
-        ohterAnswerEffect.SetActive(false);
-        myAnswerEffect.SetActive(false); 
+        ohterAnswerEffect.gameObject.SetActive(false);
+        myAnswerEffect.gameObject.SetActive(false); 
 
         myNickName.gameObject.SetActive(false);
         otherNickName.gameObject.SetActive(false);
