@@ -24,7 +24,8 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     List<KeyValuePair<string, OX>> questionList = new List<KeyValuePair<string, OX>>();
     //문제 번호가 저장되어있는
     List<int> questionNum = new List<int>();
-    int curQuestionNum = 0;
+    int currQuestion = 0;
+    int step = 0;
 
    
 
@@ -38,8 +39,10 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     public GameObject X_Btn;
 
     [Header("UI")]
+    public GameObject GamePanel;
     public TextMeshProUGUI myNickName;
     public TextMeshProUGUI otherNickName;
+    public TextMeshProUGUI myscore;
 
     //플레이어들이 선택한 것
     public GameObject myChoose_Img;
@@ -50,9 +53,21 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     //정답이펙트
     public TextMeshProUGUI myAnswerEffect;
     public TextMeshProUGUI ohterAnswerEffect;
- 
+
+    [Header("ResultPanel")]
+    public GameObject ResultPanel;          //결과창
+    public TextMeshProUGUI myNickTxt;       //내 닉네임 
+    public TextMeshProUGUI otherNickTxt;    //상대 닉네임
+    public TextMeshProUGUI myScoreTxt;      // 내 점수
+    public TextMeshProUGUI otherScoreTxt;   //상대 점수
+    public TextMeshProUGUI winOrLose;       //승리판정
+
+    public GameObject ok_Btn;                   //확인 버튼
+
+    private int score = 0;                          //점수 
 
     //타이머
+    [Header("Timer")]
     public Image gageBar;
     float timer = 0.0f;
 
@@ -65,6 +80,10 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     }
     private void Start()
     {
+       
+        GamePanel.SetActive(true);
+        ResultPanel.SetActive(false);
+
         //문제 테이블 적용
         QuestionTableSet();
 
@@ -124,14 +143,18 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         questionTxt.text = "OX 문제입니다.";
         yield return new WaitForSeconds(1.0f);
 
-        while (curQuestionNum <= 5)
+        while (step < 5)
         {
-            questionTxt.text = (curQuestionNum+1) + "번 문제";
+            if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("OXWinCount"))
+                myscore.text = "내 점수 : " + (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"];
+            else
+                myscore.text = "내 점수 : 0";
+
             yield return new WaitForSeconds(1.0f);      
             //문제 내기 방장만
             if (PhotonNetwork.IsMasterClient)
             {
-                pv.RPC("SetTextQuestion", RpcTarget.AllViaServer, (int)questionNum[curQuestionNum]);            
+                pv.RPC("SetTextQuestion", RpcTarget.AllViaServer, (int)questionNum[step]);            
             }
 
          
@@ -151,11 +174,12 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
                 }
             }
 
-            questionTxt.text = "타임오버";                
             Choose_TimeOver();
-            yield return new WaitForSeconds(0.5f);
-            questionTxt.text = "정답은";
 
+            questionTxt.gameObject.SetActive(true);
+            questionTxt.text = "타임오버";                         
+            yield return new WaitForSeconds(1.0f);
+            questionTxt.text = "정답은";
             //시간 종료후
             yield return new WaitForSeconds(1.0f);
             //결과 보여주기
@@ -168,19 +192,19 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             ResetUI();
         }
 
+        questionTxt.text = "게임 종료";
+
         //모든 문제 완료시 결과 보여주고
         //다시 메인 로비로
-
-
+        GameEnd();
         yield return null;
     }
 
     [PunRPC]
     void SetTextQuestion(int num)   //방장쪽에서 정해진 문제 재출
     {
-        questionTxt.text = (curQuestionNum+1) +"번 문제\n"+ questionList[num].Key;
-        curQuestionNum++;
-
+        questionTxt.text = (step + 1) +"번 문제\n"+ questionList[num].Key;
+        currQuestion = num;
         O_Btn.SetActive(true);
         X_Btn.SetActive(true);
     }
@@ -203,7 +227,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     void Choose_TimeOver()//시간 오버시
-    {         
+    {
         OnUserChoose();
     }
 
@@ -218,7 +242,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         //내가 선택한 OX 보여주기
         myChoose_Img.SetActive(true);
         questionTxt.gameObject.SetActive(false);
-       
+
         //버튼 비활성화
         O_Btn.SetActive(false);
         X_Btn.SetActive(false);
@@ -290,12 +314,21 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             if (temp > 3.0f)
                 temp = 0.0f;
         }
+        
+        if(timer <= 0 && otherChoose.Equals(OX.None))
+        {
+            ohterChoose_Txt.text = "";
+        }
+
+    
     }
 
     void OnCheckOX()//정답 확인
     {
         myAnswerEffect.gameObject.SetActive(true);
-        if (myChoose == questionList[curQuestionNum].Value)
+        questionTxt.text = "정답은 : " + questionList[currQuestion].Value;
+
+        if (myChoose == questionList[currQuestion].Value)
         {  
             myAnswerEffect.text = "O";
             myAnswerEffect.color = Color.blue;
@@ -318,7 +351,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
         ohterAnswerEffect.gameObject.SetActive(true);
         //효과 만
-        if (otherChoose == questionList[curQuestionNum].Value)
+        if (otherChoose == questionList[currQuestion].Value)
         {
             ohterAnswerEffect.text = "O";
             ohterAnswerEffect.color = Color.blue;
@@ -328,13 +361,11 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             ohterAnswerEffect.text = "X";
             ohterAnswerEffect.color = Color.red;
         }
-
     }
 
     void ResetUI()//한문제 끝나면 다시 원상복구
     {
-        O_Btn.SetActive(true);
-        X_Btn.SetActive(true);
+        step++;
 
         ohterAnswerEffect.gameObject.SetActive(false);
         myAnswerEffect.gameObject.SetActive(false); 
@@ -348,6 +379,55 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         myChoose_Img.SetActive(false);
         otherChoose_Img.SetActive(false);
         questionTxt.gameObject.SetActive(true);
+    }
+
+    void GameEnd()//모든 문제 끝나고 결과창 업데이트
+    {
+        ResultPanel.SetActive(true);
+        GamePanel.SetActive(false);
+
+        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
+        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
+
+        int myscore = (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"];
+        int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["OXWinCount"];
+
+
+        myScoreTxt.text = myscore.ToString();
+        otherScoreTxt.text = otherscore.ToString();
+
+        //승리 판정하기
+        if (myscore == otherscore)
+        {
+            winOrLose.text = "무승부";
+            winOrLose.color = Color.green;
+        }
+        else if (myscore > otherscore)
+        {
+            winOrLose.text = "승리";
+            winOrLose.color = Color.blue;
+            //D
+            InGame.Inst.WinGame();  //본 게임메니저에서 승리 카운트 해주기
+        }
+        else if (myscore < otherscore)
+        {
+            winOrLose.text = "패배";
+            winOrLose.color = Color.red;
+        }
+
+        
+        ok_Btn.SetActive(true);
+    }
+
+    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
+    {
+        //미니게임 (과일먹기) 종료
+        ok_Btn.SetActive(false);
+        ResultPanel.SetActive(false);
+        
+
+        //화면 갱신해주기
+        InGame.Inst.SetLobby();
     }
 
 

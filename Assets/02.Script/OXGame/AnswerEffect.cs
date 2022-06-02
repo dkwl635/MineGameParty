@@ -18,7 +18,12 @@ public class AnswerEffect : MonoBehaviour
             return;
 
         timer += Time.deltaTime;
-        
+
+        if (text.text == "O")
+            originColor = Color.blue;
+        else
+            originColor = Color.red;
+
         if(timer >= 0.2f)
         {
             timer = 0.0f;
@@ -37,6 +42,6 @@ public class AnswerEffect : MonoBehaviour
     {
         count = 4;
         timer = 0.0f;
-        originColor = text.color;
+        
     }
 }
