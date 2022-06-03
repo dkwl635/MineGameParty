@@ -41,13 +41,6 @@ public class InGame : MonoBehaviourPunCallbacks
     public GameObject[] MiniGame;       //미니게임이 담겨있는
 
 
-    //내가 조종하는 캐릭터  이동 연결을 위한 이벤트 함수
-    public delegate void MoveBtnEvent(int h);
-    public MoveBtnEvent MoveStart;
-    public MoveBtnEvent MoveEnd;
-
-    [HideInInspector] public  LobbyPlayerController player;
-   
     bool isReady = false;   //레디 상태
 
     private void Awake()
@@ -123,17 +116,6 @@ public class InGame : MonoBehaviourPunCallbacks
         PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
     }
 
-    #region PlayerController 플레이어 컨트롤러에 등록될 함수들
-    
-    public void MoveBtnDown(int h)
-    {
-        MoveStart?.Invoke(h); 
-    }
-    public void  MoveBtnUp(int h)
-    {
-        MoveEnd?.Invoke(h);
-    }
-    #endregion
 
     #region RoomController   //서버 관련 함수
     public void LeftRoom() //방을나갈려는 함수

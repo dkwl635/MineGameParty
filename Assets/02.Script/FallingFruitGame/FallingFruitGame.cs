@@ -23,7 +23,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     }
 
     public static FallingFruitGame Inst;    //싱글턴 패턴을 위한
-    public LobbyPlayerController[] playerObj;   //과일들의 충돌캐릭터들의 거리 계산을 위한 플레이어들 캐릭터변수
+    public PlayerCharacter[] playerObj;   //과일들의 충돌캐릭터들의 거리 계산을 위한 플레이어들 캐릭터변수
 
     //동기화를 위한 변수 선언
     ExitGames.Client.Photon.Hashtable playerHash;
@@ -63,7 +63,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public override void OnEnable() //추후 게임을 다시 시작할경우 셋팅
     {    
         //씬에 있는 플레이어 오브젝트 불러오기
-        playerObj = GameObject.FindObjectsOfType<LobbyPlayerController>();
+        playerObj = GameObject.FindObjectsOfType<PlayerCharacter>();
 
         //게임 시작
         StartCoroutine(GameStart());
@@ -110,7 +110,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     }
 
     
-    public void AddScore(LobbyPlayerController player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환
+    public void AddScore(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환
     {
         ExitGames.Client.Photon.Hashtable playerHash = player.pv.Owner.CustomProperties;
         //플레이어 에게 점수 적용시켜주기 

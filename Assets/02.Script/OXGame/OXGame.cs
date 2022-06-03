@@ -389,8 +389,8 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
         otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
 
-        int myscore = (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"];
-        int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["OXWinCount"];
+        int myscore = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("OXWinCount") ? (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"] : 0;
+        int otherscore = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("OXWinCount") ? (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["OXWinCount"] : 0;
 
 
         myScoreTxt.text = myscore.ToString();

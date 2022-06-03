@@ -7,7 +7,7 @@ public class Fruits : MonoBehaviourPunCallbacks
 {
     PhotonView pv;
 
-    LobbyPlayerController player;
+    PlayerCharacter player;
     float dis = 10000.0f;
     float temp = 0;
 
