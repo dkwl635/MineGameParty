@@ -6,24 +6,41 @@ public class TestGame : MonoBehaviour
 {
     public TestPlayer player;
     public GameObject stairPrefab;
-
     public GameObject spawnPos;
     LinkedList<Stairs> stairs = new LinkedList<Stairs>();
-
     public GameObject stairsGroup;
+    public GameObject camera;
+
+    bool game = true;
 
     public void RightMove()
     {
+        if (!game)
+            return;
+
         player.transform.position += Vector3.up + Vector3.right;
+
+        camera.transform.position += Vector3.up;
+
+        CheckStair();
     }
 
     public void LeftMove()
     {
+        if (!game)
+            return;
+
         player.transform.position += Vector3.up + Vector3.left;
+        
+        camera.transform.position += Vector3.up;
+
+        CheckStair();
     }
 
     private void Start()
     {
+        camera = Camera.main.gameObject;
+
         Stairs newStairs = GameObject.Instantiate(stairPrefab).GetComponent<Stairs>();
         newStairs.transform.position = spawnPos.transform.position;
         newStairs.num = 0;
@@ -39,7 +56,13 @@ public class TestGame : MonoBehaviour
 
     private void Update()
     {
-      if(stairs.First.Value.transform.position.y + 1 < player.transform.position.y)
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+            LeftMove();
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            RightMove();
+
+        if (stairs.First.Value.transform.position.y + 1 < player.transform.position.y)
         {
             GameObject obj = stairs.First.Value.gameObject;
             stairs.RemoveFirst();
@@ -49,7 +72,6 @@ public class TestGame : MonoBehaviour
         }
 
     }
-
 
     void SpawnStair()
     {
@@ -77,5 +99,23 @@ public class TestGame : MonoBehaviour
         stairs.AddLast(newStairs);
     }
 
+    void CheckStair()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(player.transform.position, Vector3.down, 1.0f);
+        if(hit)
+        {
+            Debug.Log("계단");
+        }
+        else
+        {
+            Debug.Log("없음");
+            NoStair();
+        }
+    }
+
+    void NoStair()
+    {
+        game = false;
+    }
 
 }
