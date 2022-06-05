@@ -75,5 +75,9 @@ public class TestPlayer : MonoBehaviourPunCallbacks
             animator.SetBool("move", true);
     }
 
-  
+    
+    public void SetHit()
+    {
+        animator.SetTrigger("hit");
+    }
 }
