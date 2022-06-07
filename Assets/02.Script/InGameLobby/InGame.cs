@@ -10,6 +10,8 @@ using UnityEngine.SceneManagement;
 public enum GameType    //미니 게임 종류
 {
     FallingFruitGame,
+    OXGame,
+    StairGame,
 }
 
 public class InGame : MonoBehaviourPunCallbacks 
@@ -39,6 +41,9 @@ public class InGame : MonoBehaviourPunCallbacks
     [Header("Game")]
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public GameObject[] MiniGame;       //미니게임이 담겨있는
+
+    //입장한 플레이어 목록
+   public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
 
 
     bool isReady = false;   //레디 상태
@@ -83,13 +88,25 @@ public class InGame : MonoBehaviourPunCallbacks
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);  
+
     }
 
     private void Update()
     {
         //실시간 레디 체크
-        CheckReady(); 
+        CheckReady();
         //SetWinCount();
+
+        //test 
+        PlayerCharacter[] plays = FindObjectsOfType<PlayerCharacter>();
+        for (int i = 0; i < plays.Length; i++)
+        {
+            if (plays[i].pv.IsMine)
+                playerCharacters[0] = plays[i];
+            else
+                playerCharacters[1] = plays[i];
+        }
+
     }
 
     void CreatePlayer() //캐릭터 만들기
@@ -113,7 +130,7 @@ public class InGame : MonoBehaviourPunCallbacks
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-        PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0); 
+        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);    
     }
 
 
@@ -239,7 +256,7 @@ public class InGame : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 1);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 2);
     }
 
     [PunRPC]
@@ -299,5 +316,6 @@ public class InGame : MonoBehaviourPunCallbacks
     }
     #endregion
 
+   
 
 }

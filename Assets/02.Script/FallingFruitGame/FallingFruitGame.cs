@@ -61,9 +61,9 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     }
 
     public override void OnEnable() //추후 게임을 다시 시작할경우 셋팅
-    {    
+    {
         //씬에 있는 플레이어 오브젝트 불러오기
-        playerObj = GameObject.FindObjectsOfType<PlayerCharacter>();
+        playerObj = InGame.Inst.playerCharacters;
 
         //게임 시작
         StartCoroutine(GameStart());

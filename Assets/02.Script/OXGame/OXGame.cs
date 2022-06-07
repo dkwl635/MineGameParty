@@ -27,8 +27,6 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     int currQuestion = 0;
     int step = 0;
 
-   
-
     //플레이어가 선택한것
     OX myChoose = OX.None;
     OX otherChoose = OX.None;

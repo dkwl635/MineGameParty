@@ -23,6 +23,8 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     public Vector2 currPos = Vector2.zero; //위치
     int currH = 0; //현재 위치 방향 및 속도 
     float isOnece = 0.02f;  //첫 동기화를 위해
+    public  bool isMove = true;
+
 
     private void Awake()
     {
@@ -67,6 +69,9 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (pv.IsMine) //내가 조종할때
         {
+            if (!isMove)
+                return;
+
             velocity.x = h * 2;
             velocity.y = rigidbody.velocity.y;
             rigidbody.velocity = velocity;
@@ -84,7 +89,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
                 return;
             }
             //기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
-            if (1.0f < ((Vector2)transform.position - currPos).magnitude)
+            if (0.4f < ((Vector2)transform.position - currPos).magnitude)
             {  
                 transform.position = currPos;
             }
@@ -143,12 +148,10 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
             currPos = (Vector2)stream.ReceiveNext();        
             currH = (int)stream.ReceiveNext();
             spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
-           
 
-            if (currH.Equals(0))
-                animator.SetBool("move", false);
-            else
-                animator.SetBool("move", true);
+
+
+            animator.SetBool("move", currH == 0 ? false : true);         
         }
     }
 
@@ -156,5 +159,10 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     void StartPosSet(Vector2 pos)
     {
         transform.position = pos;
+    }
+
+    public void SetHit()
+    {
+        animator.SetTrigger("hit");
     }
 }
