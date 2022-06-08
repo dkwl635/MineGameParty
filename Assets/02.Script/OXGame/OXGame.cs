@@ -419,10 +419,10 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
     public void OnOkBtn()   //게임 종료후 확인버튼 누르면
     {
-        //미니게임 (과일먹기) 종료
+        //미니게임 종료
         ok_Btn.SetActive(false);
         ResultPanel.SetActive(false);
-        
+        this.gameObject.SetActive(false);
 
         //화면 갱신해주기
         InGame.Inst.SetLobby();
