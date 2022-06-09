@@ -256,7 +256,7 @@ public class InGame : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 2);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, curGame);
     }
 
     [PunRPC]

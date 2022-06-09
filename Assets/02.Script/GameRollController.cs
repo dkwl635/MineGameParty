@@ -63,7 +63,7 @@ public class GameRollController : MonoBehaviourPunCallbacks
     public int  Roll()
     {
         //게임 판 돌리기
-        int rand = Random.Range(0, 9);            
+        int rand = Random.Range(0, 2);            
         pv.RPC("RollStart", RpcTarget.All, rand); //모든 플레이어에게 다음 게임 번호 알려주고 
         //판돌리기
 
