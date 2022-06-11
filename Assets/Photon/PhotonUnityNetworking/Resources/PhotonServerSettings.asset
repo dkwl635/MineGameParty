@@ -50,6 +50,7 @@ MonoBehaviour:
   - SetTextQuestion
   - StartPosSet
   - GameEnd
+  - RPCHit
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -65,7 +65,13 @@ public class InGame : MonoBehaviourPunCallbacks
 
     // Start is called before the first frame update
     void Start()
-    { 
+    {
+//#if (UNITY_ANDROID)
+        //해상도 잡기
+        SetResolution();
+//#endif
+
+
         //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
 
@@ -90,6 +96,7 @@ public class InGame : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);  
 
     }
+    
 
     private void Update()
     {
@@ -109,7 +116,33 @@ public class InGame : MonoBehaviourPunCallbacks
 
     }
 
-    void CreatePlayer() //캐릭터 만들기
+//    #if (UNITY_ANDROID)
+    /* 해상도 설정하는 함수 */
+    public void SetResolution()
+    {
+        int setWidth = 720; // 사용자 설정 너비
+        int setHeight = 1280; // 사용자 설정 높이
+
+        int deviceWidth = Screen.width; // 기기 너비 저장
+        int deviceHeight = Screen.height; // 기기 높이 저장
+
+        Screen.SetResolution(setWidth, setHeight, false); // SetResolution 함수 제대로 사용하기
+
+
+    //    if ((float)setWidth / setHeight < (float)deviceWidth / deviceHeight) // 기기의 해상도 비가 더 큰 경우
+    //    {
+    //        float newWidth = ((float)setWidth / setHeight) / ((float)deviceWidth / deviceHeight); // 새로운 너비
+    //        Camera.main.rect = new Rect((1f - newWidth) / 2f, 0f, newWidth, 1f); // 새로운 Rect 적용
+    //    }
+    //    else // 게임의 해상도 비가 더 큰 경우
+    //    {
+    //        float newHeight = ((float)deviceWidth / deviceHeight) / ((float)setWidth / setHeight); // 새로운 높이
+    //        Camera.main.rect = new Rect(0f, (1f - newHeight) / 2f, 1f, newHeight); // 새로운 Rect 적용
+    //    }
+    }
+//#endif
+
+void CreatePlayer() //캐릭터 만들기
     {
         //랜덤한 위치에 만들어주기
         Vector3 a_HPos = Vector3.zero;
@@ -134,7 +167,7 @@ public class InGame : MonoBehaviourPunCallbacks
     }
 
 
-    #region RoomController   //서버 관련 함수
+#region RoomController   //서버 관련 함수
     public void LeftRoom() //방을나갈려는 함수
     {
         //저장된 CustomProperties 초기화 시켜주기
@@ -172,9 +205,9 @@ public class InGame : MonoBehaviourPunCallbacks
 
 
 
-    #endregion
+#endregion
 
-    #region GameController 게임 진행 관련 함수
+#region GameController 게임 진행 관련 함수
     public void ReadyBtn()  //레디 버튼 
     {
         isReady = !isReady;
@@ -256,7 +289,7 @@ public class InGame : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, curGame);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 2);
     }
 
     [PunRPC]
@@ -314,7 +347,7 @@ public class InGame : MonoBehaviourPunCallbacks
         SetWinCount();
 
     }
-    #endregion
+#endregion
 
    
 

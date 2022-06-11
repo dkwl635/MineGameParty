@@ -36,7 +36,7 @@ public class TestPlayer : MonoBehaviourPunCallbacks
 
     private void Update()
     {
-       // Move_Update();
+       Move_Update();
     }
 
     void Move_Update()

@@ -75,16 +75,17 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
+
+        //문제 테이블 적용
+        QuestionTableSet();
     }
-    private void Start()
+    private void OnEnable()
     {
        
         GamePanel.SetActive(true);
         ResultPanel.SetActive(false);
 
-        //문제 테이블 적용
-        QuestionTableSet();
-
+  
         //방장만    
         if (PhotonNetwork.IsMasterClient)
         {        
@@ -110,7 +111,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
     void QuestionTableSet() //문제 테이블 셋팅하기
     {
-        questionList.Add(new KeyValuePair<string, OX>("문어다리는 10개이다", OX.O));
+        questionList.Add(new KeyValuePair<string, OX>("문어다리는 10개이다", OX.X));
         questionList.Add(new KeyValuePair<string, OX>("달팽이도 이빨이 있다.", OX.O));
         questionList.Add(new KeyValuePair<string, OX>("고래는 5M 이하의 물속에서 잠을 잔다.", OX.X));
         questionList.Add(new KeyValuePair<string, OX>("원숭이에게도 지문이 있다", OX.O));

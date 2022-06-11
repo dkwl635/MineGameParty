@@ -22,7 +22,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     //원격 조종용 변수 (동기화를 위한)
     public Vector2 currPos = Vector2.zero; //위치
     int currH = 0; //현재 위치 방향 및 속도 
-    float isOnece = 0.02f;  //첫 동기화를 위해
+    float isOnece = 0.2f;  //첫 동기화를 위해
     public  bool isMove = true;
 
 
@@ -33,7 +33,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         spriteRenderer = GetComponent<SpriteRenderer>();
 
         pv = GetComponent<PhotonView>();
-        pv.ObservedComponents[0] = this;
+       
     }
 
     // Start is called before the first frame update
@@ -75,29 +75,33 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
             velocity.x = h * 2;
             velocity.y = rigidbody.velocity.y;
             rigidbody.velocity = velocity;
+
+            if (Input.GetKeyDown(KeyCode.A))
+                SetHit();
+
         }
         else //원격 플레이어일 때 수행
         {
-            if (isOnece > 0.0f)
-            { //내가 입장할 때 지 이미 존재하는 OtherPC들의 위치를 동기화 위해
-                isOnece -= Time.deltaTime;
-                if (isOnece <= 0.0f)
-                {
-                    transform.position = currPos;
-                }
+            //if (isOnece > 0.0f)
+            //{ //내가 입장할 때 지 이미 존재하는 OtherPC들의 위치를 동기화 위해
+            //    isOnece -= Time.deltaTime;
+            //    if (isOnece <= 0.0f)
+            //    {
+            //        transform.position = currPos;
+            //    }
 
-                return;
-            }
-            //기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
-            if (0.4f < ((Vector2)transform.position - currPos).magnitude)
-            {  
-                transform.position = currPos;
-            }
-            else
-            {
-                //원격 플레이어의 플레이어를 수신받은 위치까지 부드럽게 이동시킴
-                transform.position = Vector2.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
-            }
+            //    return;
+            //}
+            ////기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
+            //if (0.4f < ((Vector2)transform.position - currPos).magnitude)
+            //{
+            //    transform.position = currPos;
+            //}
+            //else
+            //{
+            //    //원격 플레이어의 플레이어를 수신받은 위치까지 부드럽게 이동시킴
+            //    transform.position = Vector2.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
+            //}
 
         }
 
@@ -141,27 +145,26 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         {
             stream.SendNext((Vector2)transform.position);    //위치
             stream.SendNext(h);    //위치
-            stream.SendNext(spriteRenderer.flipX ? 1 : 0);     
+            stream.SendNext(spriteRenderer.flipX ? 1 : 0);              
         }
         else //원격 플레이어의 위치 정보 수신
         {
             currPos = (Vector2)stream.ReceiveNext();        
             currH = (int)stream.ReceiveNext();
             spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
-
-
-
+      
             animator.SetBool("move", currH == 0 ? false : true);         
         }
     }
 
-    [PunRPC]
-    void StartPosSet(Vector2 pos)
-    {
-        transform.position = pos;
-    }
-
     public void SetHit()
+    {
+        pv.RPC("RPCHit", RpcTarget.AllViaServer);
+        //animator.SetTrigger("hit");
+
+    }
+    [PunRPC]
+    void RPCHit()//트리거 동기화
     {
         animator.SetTrigger("hit");
     }

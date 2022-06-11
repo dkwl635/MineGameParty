@@ -23,7 +23,8 @@ public class StairGame : MonoBehaviourPunCallbacks
     //계단 프리팹
     public GameObject stairPrefab;
     //계단 처음 스폰 위치
-    public GameObject spawnPos;
+    public GameObject spawnPosObj;
+    Vector3 spawnPos = Vector3.zero; 
     //소환된 계단들을 담아둘 링크드 리스트
     Queue<Stairs> stairs = new Queue<Stairs>();
     //마지막 계단을 확인하기 위해
@@ -99,7 +100,11 @@ public class StairGame : MonoBehaviourPunCallbacks
 
 
         myPlayer.isMove = false;
-        myPlayer.transform.position = spawnPos.transform.position+Vector3.up;
+
+        spawnPos = spawnPosObj.transform.position + Vector3.up;
+        spawnPos.z = myPlayer.transform.position.z;
+
+        myPlayer.transform.position = spawnPos;
         score = 0;
 
         GamePanel.SetActive(true);
@@ -173,15 +178,15 @@ public class StairGame : MonoBehaviourPunCallbacks
         if (!game)
             return;
 
-        //if (timer > 0)
-        //{
-        //    timer -= Time.deltaTime;
-        //    gageBar.fillAmount = timer / nextTimer;
-        //    if (timer <= 0)
-        //    {
-        //        GameOver();
-        //    }
-        //}
+        if (timer > 0)
+        {
+            timer -= Time.deltaTime;
+            gageBar.fillAmount = timer / nextTimer;
+            if (timer <= 0)
+            {
+                GameOver();
+            }
+        }
     }
 
 
@@ -222,7 +227,7 @@ public class StairGame : MonoBehaviourPunCallbacks
 
     void FirstSpawnStair()
     {
-        Stairs newStairs = PhotonNetwork.InstantiateRoomObject("Stairs", spawnPos.transform.position, Quaternion.identity).GetComponent<Stairs>();
+        Stairs newStairs = PhotonNetwork.InstantiateRoomObject("Stairs", spawnPosObj.transform.position, Quaternion.identity).GetComponent<Stairs>();
             //GameObject.Instantiate(stairPrefab).GetComponent<Stairs>();     
         newStairs.num = 0;
         stairs.Enqueue(newStairs);
@@ -298,8 +303,7 @@ public class StairGame : MonoBehaviourPunCallbacks
     }
 
     void GameOver()
-    {
-    
+    { 
         myPlayer.SetHit();
         pv.RPC("GameEnd", RpcTarget.AllViaServer);   
     }
@@ -316,6 +320,10 @@ public class StairGame : MonoBehaviourPunCallbacks
 
         ResultPanel.SetActive(true);
         GamePanel.SetActive(false);
+
+        winOrLose.text = "";
+        myScoreTxt.text = "0";
+        otherScoreTxt.text = "0";
 
         yield return new WaitForSeconds(0.5f);
         otherSprite.color = Color.white;
@@ -335,8 +343,7 @@ public class StairGame : MonoBehaviourPunCallbacks
         winOrLose.text = "결과는..";
         winOrLose.color = Color.green;
 
-        myScoreTxt.text = "0";
-        otherScoreTxt.text = "0";
+        
         myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
         otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
 
