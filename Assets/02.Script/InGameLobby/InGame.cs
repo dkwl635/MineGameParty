@@ -12,6 +12,7 @@ public enum GameType    //미니 게임 종류
     FallingFruitGame,
     OXGame,
     StairGame,
+    RememberGame
 }
 
 public class InGame : MonoBehaviourPunCallbacks 
@@ -77,6 +78,7 @@ public class InGame : MonoBehaviourPunCallbacks
 
         //첫 셋팅
         ohterNickName.text = "플레이어 기달리는 중...";
+
 
         //플레이어들 만들기
         CreatePlayer();
@@ -155,15 +157,12 @@ void CreatePlayer() //캐릭터 만들기
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
 
-        if (pv.IsMine)      
-            a_HPos.z = -1;      
-        else
-            a_HPos.z = 0;
+       
 
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);    
+        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.charName, a_HPos, Quaternion.identity, 0);    
     }
 
 

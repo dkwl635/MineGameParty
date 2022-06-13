@@ -72,7 +72,7 @@ public class StairGame : MonoBehaviourPunCallbacks
 
 
     //private void Start()
-    private  void OnEnable()
+    private void OnEnable()
     {
         pv = GetComponent<PhotonView>();
 
@@ -161,6 +161,29 @@ public class StairGame : MonoBehaviourPunCallbacks
 
         yield return new WaitForSeconds(1.0f);
         countText.text = "";
+
+
+        while (true)
+        {
+            yield return null;
+
+            if (PhotonNetwork.IsMasterClient && game)
+                SpawnCheckStair();
+
+
+            if (!game)
+                continue;
+
+            if (timer > 0)
+            {
+                timer -= Time.deltaTime;
+                gageBar.fillAmount = timer / nextTimer;
+                if (timer <= 0)
+                {
+                    GameOver();
+                }
+            }
+        }
     }
 
     private void Update()
@@ -171,22 +194,22 @@ public class StairGame : MonoBehaviourPunCallbacks
         if (Input.GetKeyDown(KeyCode.RightArrow))
             RightMove();
 
-        if (PhotonNetwork.IsMasterClient && game)
-            SpawnCheckStair();
+        //if (PhotonNetwork.IsMasterClient && game)
+        //    SpawnCheckStair();
 
 
-        if (!game)
-            return;
+        //if (!game)
+        //    return;
 
-        if (timer > 0)
-        {
-            timer -= Time.deltaTime;
-            gageBar.fillAmount = timer / nextTimer;
-            if (timer <= 0)
-            {
-                GameOver();
-            }
-        }
+        //if (timer > 0)
+        //{
+        //    timer -= Time.deltaTime;
+        //    gageBar.fillAmount = timer / nextTimer;
+        //    if (timer <= 0)
+        //    {
+        //        GameOver();
+        //    }
+        //}
     }
 
 

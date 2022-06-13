@@ -20,9 +20,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     [SerializeField]  Vector2 velocity = Vector2.zero;
 
     //원격 조종용 변수 (동기화를 위한)
-    public Vector2 currPos = Vector2.zero; //위치
-    int currH = 0; //현재 위치 방향 및 속도 
-    float isOnece = 0.2f;  //첫 동기화를 위해
+    public Vector3 currPos = Vector3.zero; //위치
     public  bool isMove = true;
 
 
@@ -69,6 +67,10 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (pv.IsMine) //내가 조종할때
         {
+            currPos = transform.position;
+            currPos.z = -1;
+            transform.position = currPos;
+
             if (!isMove)
                 return;
 
@@ -80,32 +82,12 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
                 SetHit();
 
         }
-        else //원격 플레이어일 때 수행
+        else
         {
-            //if (isOnece > 0.0f)
-            //{ //내가 입장할 때 지 이미 존재하는 OtherPC들의 위치를 동기화 위해
-            //    isOnece -= Time.deltaTime;
-            //    if (isOnece <= 0.0f)
-            //    {
-            //        transform.position = currPos;
-            //    }
-
-            //    return;
-            //}
-            ////기존 위치와 동기화 되는 위치가 멀 경우 바로 이동
-            //if (0.4f < ((Vector2)transform.position - currPos).magnitude)
-            //{
-            //    transform.position = currPos;
-            //}
-            //else
-            //{
-            //    //원격 플레이어의 플레이어를 수신받은 위치까지 부드럽게 이동시킴
-            //    transform.position = Vector2.Lerp(transform.position, currPos, Time.deltaTime * 10.0f);
-            //}
-
+            currPos = transform.position;
+            currPos.z = 0;
+            transform.position = currPos;
         }
-
-
     }
 
     //움직이기 시작할때
@@ -139,21 +121,15 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
     //원격동기화
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    { 
+    {
         //로컬 플레이어의 위치 정보 송신
         if (stream.IsWriting)
-        {
-            stream.SendNext((Vector2)transform.position);    //위치
-            stream.SendNext(h);    //위치
+        {                    
             stream.SendNext(spriteRenderer.flipX ? 1 : 0);              
         }
         else //원격 플레이어의 위치 정보 수신
-        {
-            currPos = (Vector2)stream.ReceiveNext();        
-            currH = (int)stream.ReceiveNext();
-            spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
-      
-            animator.SetBool("move", currH == 0 ? false : true);         
+        {                     
+            spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;         
         }
     }
 

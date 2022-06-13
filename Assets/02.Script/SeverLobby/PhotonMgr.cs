@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+
+
 public class PhotonMgr : MonoBehaviourPunCallbacks
 {
     //플레이어 닉네임
@@ -28,8 +30,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     private void Awake()
     {
  
-        PhotonNetwork.SendRate = 40;            
-        PhotonNetwork.SerializationRate = 20;
+        PhotonNetwork.SendRate = 30;            
+        PhotonNetwork.SerializationRate = 10;
 
         if (!PhotonNetwork.IsConnected)
         {
@@ -223,5 +225,9 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
         yield return ao;
     }
+
+
+
+
 
 } 

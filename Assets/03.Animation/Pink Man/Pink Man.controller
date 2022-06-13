@@ -29,7 +29,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VirtualGuy_Idle
+  m_Name: Pink Man
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -43,7 +43,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 9721f828f03d06a44b03c0b671b3008d, type: 2}
+  m_Motion: {fileID: 7400000, guid: effdc4e77c696d443adc27f2eaef1584, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -56,7 +56,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VirtualGuy_Run
+  m_Name: Pink Man_Run
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -70,7 +70,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: f7dd8d5cce72097499f16b979e070b9e, type: 2}
+  m_Motion: {fileID: 7400000, guid: 0e782a4d161e4214a8ca9c46337f0606, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -186,7 +186,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Virtual Guy
+  m_Name: Pink Man
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: move
@@ -221,7 +221,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Virtual Guy_Hit
+  m_Name: Hit
   m_Speed: 2
   m_CycleOffset: 0
   m_Transitions:
@@ -235,7 +235,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 858423d3fdc4f5c42a4ccca30c29e13a, type: 2}
+  m_Motion: {fileID: 7400000, guid: 2469115d03c14cc43bc82f3ebdd346cd, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
