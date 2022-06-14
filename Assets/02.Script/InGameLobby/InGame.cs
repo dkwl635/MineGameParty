@@ -162,7 +162,8 @@ void CreatePlayer() //캐릭터 만들기
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.charName, a_HPos, Quaternion.identity, 0);    
+        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.charName, a_HPos, Quaternion.identity, 0);
+        Debug.Log(UserData.charName);
     }
 
 
