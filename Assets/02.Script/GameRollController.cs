@@ -7,12 +7,17 @@ public class GameRollController : MonoBehaviourPunCallbacks
 {
    public  PhotonView pv;
 
+    public int GameCount = 0;
+
     [SerializeField]float power = 0;
     bool roll = false; //돌고 있는지
     bool endroll = false;   //
 
     //각각 번호 마다 멈춰야 할 각도 
-    float[] angles = { 0.0f, 45.0f, 90.0f, 135.0f, 180.0f, 225.0f, 270.0f , 315.0f, 360.0f};
+    //float[] angles = { 0.0f, 45.0f, 90.0f, 135.0f, 180.0f, 225.0f, 270.0f , 315.0f, 360.0f};
+    float[] angles = { 0.0f, 90.0f, 180.0f, 270.0f};
+
+
     float goalAngle = 0;// 목표 각도 값
 
     private void Awake()
@@ -63,7 +68,7 @@ public class GameRollController : MonoBehaviourPunCallbacks
     public int  Roll()
     {
         //게임 판 돌리기
-        int rand = Random.Range(0, 2);            
+        int rand = Random.Range(0, GameCount);            
         pv.RPC("RollStart", RpcTarget.All, rand); //모든 플레이어에게 다음 게임 번호 알려주고 
         //판돌리기
 

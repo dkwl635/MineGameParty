@@ -39,6 +39,7 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
     //체크하는 큐
     Queue<int> check = new Queue<int>();
 
+    public GameObject timerObj;
     float timer = 15.0f;
     public Image timerbar;
     bool wait = false;
@@ -79,7 +80,10 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
         check.Clear();
         timer = 15.0f;
 
-        GameObject.Find("LeftButton").GetComponent<Button>().onClick.AddListener(() => { SelMyArrow(0); });
+
+        Button LeftButton = GameObject.Find("LeftButton").GetComponent<Button>();
+        LeftButton.onClick.AddListener(() => { SelMyArrow(0); });
+
         GameObject.Find("RightButton").GetComponent<Button>().onClick.AddListener(() => { SelMyArrow(1); });
 
         StartCoroutine(GameStart());
@@ -96,6 +100,16 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
 
         if (Input.GetKeyDown(KeyCode.RightArrow))
             SelMyArrow(1);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            if (timer >= 0)
+                timer -= Time.deltaTime;
+        }
+
+        timerbar.fillAmount = timer / 60.0f;
+
+       
     }
 
 
@@ -131,27 +145,26 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
     IEnumerator GameStart()
     {
         GamePanel.SetActive(true);
+        timerObj.SetActive(false);
         infoText.gameObject.SetActive(true);
         infoText.text = "나오는 화살표 방향에 맞게\n순서대로 입력해주세요\n시간이 지나면 사라집니다.";
         yield return new WaitForSeconds(1.5f);
         infoText.gameObject.SetActive(false);
 
-
         ArrowSetting();
         answerCountTxt.gameObject.SetActive(true);
         answerCountTxt.text = "정답 갯수 : 0";
 
+        //임시 15초 원래는 60초
+        timerObj.SetActive(true);
+        timer = 15.0f;
+        timerbar.fillAmount = timer / 60.0f;
+
+
         //게임 로직
         while (true)
         {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                if (timer >= 0)
-                    timer -= Time.deltaTime;
-            }
-
-            timerbar.fillAmount = timer / 60.0f;
-
+            //타임 오버
             if (timer <= 0)
                 break;
 

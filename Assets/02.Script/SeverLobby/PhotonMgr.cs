@@ -27,6 +27,10 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     public GameObject roomItem;
     List<RoomInfo> myList = new List<RoomInfo>();
 
+    //사운드 이름
+    const string buttonSound = "Button";
+
+
     private void Awake()
     {
  
@@ -88,6 +92,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     //랜덤 방 버튼 클릭 시 호출되는 함수
     public void ClickJoinRandomRoom()         //3번 방 입장 요청 버튼 누름
     {
+        SoundMgr.Inst.PlayEffect(buttonSound);
         //로컬 플레이어의 이름을 설정
         PhotonNetwork.LocalPlayer.NickName = userNick.text;   
         //플레이어 이름을 저장
@@ -119,6 +124,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public void ClickCreateRoom()
     {
+        SoundMgr.Inst.PlayEffect(buttonSound);
+
         string _roomName = roomName.text;
         //룸 이름이 없거나 Null일 경우 룸 이름 지정
         if (string.IsNullOrEmpty(roomName.text))
@@ -154,6 +161,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     //RoomItem 눌르면 호출된는
     public void OnClickRoomItem(string roomName)
     {
+        SoundMgr.Inst.PlayEffect(buttonSound);
         //로컬 플레이어의 이름을 설정
         PhotonNetwork.LocalPlayer.NickName = userNick.text;
         //플레이어 이름을 저장

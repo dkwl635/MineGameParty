@@ -12,7 +12,8 @@ public enum GameType    //미니 게임 종류
     FallingFruitGame,
     OXGame,
     StairGame,
-    RememberGame
+    RememberGame,
+    Last
 }
 
 public class InGame : MonoBehaviourPunCallbacks 
@@ -38,13 +39,14 @@ public class InGame : MonoBehaviourPunCallbacks
     public TextMeshProUGUI myWinCountTxt;   //내 승점
     public TextMeshProUGUI otherWinCountTxt;    //상대 승점
 
+    public Button soundBtn;
 
     [Header("Game")]
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public GameObject[] MiniGame;       //미니게임이 담겨있는
 
     //입장한 플레이어 목록
-   public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
+    public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
 
 
     bool isReady = false;   //레디 상태
@@ -62,16 +64,20 @@ public class InGame : MonoBehaviourPunCallbacks
 
         if (playerHash == null)
             playerHash = new ExitGames.Client.Photon.Hashtable();
+
+        GameRoll.GameCount = (int)GameType.Last;
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        SoundMgr.Inst.PlayBGM("InGame");
+
+
 //#if (UNITY_ANDROID)
         //해상도 잡기
         SetResolution();
 //#endif
-
 
         //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
@@ -95,7 +101,9 @@ public class InGame : MonoBehaviourPunCallbacks
         //플레이어 정보 SetCustomProperties 시키기
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);  
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
+        soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
 
     }
     
@@ -163,7 +171,6 @@ void CreatePlayer() //캐릭터 만들기
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
         GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.charName, a_HPos, Quaternion.identity, 0);
-        Debug.Log(UserData.charName);
     }
 
 
@@ -289,7 +296,7 @@ void CreatePlayer() //캐릭터 만들기
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 2);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 3);
     }
 
     [PunRPC]

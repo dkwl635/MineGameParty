@@ -1,0 +1,115 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SoundMgr : MonoBehaviour
+{
+    //싱글턴 패턴
+    static public SoundMgr Inst;
+    
+    //bgm를 실행 시키는 
+    AudioSource bgmSource;
+
+    //Effect sound 를 실행시켜 주는
+    Queue<AudioSource> effectSource = new Queue<AudioSource>();
+
+    //사운드 클립을 담아 놓는 곳
+    Dictionary<string, AudioClip> sounds = new Dictionary<string, AudioClip>();
+
+    //이펙트 사운드 
+    float effectVolum = 1;
+
+    
+    public float EffectVolum { get { return effectVolum; } set { effectVolum = value; } }
+    public float BGMVolum { get { return bgmSource.volume; } set { bgmSource.volume = value; } }
+
+    public GameObject SoundCtrlBox;
+
+
+    private void Awake()
+    {
+        if (Inst == null)
+        {
+            Inst = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else
+        {
+            Destroy(this.gameObject);
+        }
+
+        //BGM 전용 셋팅
+        bgmSource = this.gameObject.AddComponent<AudioSource>();
+        bgmSource.loop = true;
+
+        //effect 셋팅  5개정도 생성
+        for (int i = 0; i < 5; i++)
+        {
+            AudioSource newAudioSource = this.gameObject.AddComponent<AudioSource>();
+            effectSource.Enqueue(newAudioSource);
+        }
+
+    }
+
+    public void PlayBGM(string BgmName)   //BGM 실핼
+    {
+        //사운드가 있는지 체크
+        if(sounds.ContainsKey(BgmName))
+        {
+            bgmSource.clip = sounds[BgmName];          
+        }
+        else //없으면 리소스 폴더에서 해옴 (로드는 최초)
+        {
+            AudioClip newClip = Resources.Load("Sounds/" + BgmName) as AudioClip;
+            if (newClip == null)
+            {
+                Debug.Log(BgmName + "를 가진 사운드가 없습니다.");
+                return;
+            }
+            //새로운 클립 추가
+            sounds.Add(BgmName, newClip);
+            bgmSource.clip = newClip;
+
+        }
+
+        bgmSource.Play();
+
+
+    }
+
+    public void PlayEffect(string EffectName)
+    {
+
+        AudioSource nowAudio = effectSource.Dequeue();
+
+        //사운드가 있는지 체크
+        if (sounds.ContainsKey(EffectName))
+        {
+            nowAudio.clip = sounds[EffectName];
+        }
+        else //없으면 리소스 폴더에서 해옴 (로드는 최초)
+        {
+            AudioClip newClip = Resources.Load("Sounds/" + EffectName) as AudioClip;
+            if (newClip == null)
+            {
+                Debug.Log(EffectName + "를 가진 사운드가 없습니다.");
+                return;
+            }
+            //새로운 클립 추가
+            sounds.Add(EffectName, newClip);
+            nowAudio.clip = newClip;
+
+        }
+
+        nowAudio.volume = effectVolum;
+        nowAudio.Play();
+
+        effectSource.Enqueue(nowAudio);
+    }
+
+    public void OnSoundCtrlBox()
+    {
+        Instantiate(SoundCtrlBox);
+    }
+
+}
