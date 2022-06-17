@@ -34,8 +34,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     private void Awake()
     {
  
-        PhotonNetwork.SendRate = 30;            
-        PhotonNetwork.SerializationRate = 10;
+        PhotonNetwork.SendRate = 60;            
+        PhotonNetwork.SerializationRate = 30;
 
         if (!PhotonNetwork.IsConnected)
         {

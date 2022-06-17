@@ -14,6 +14,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
     //플레이어 닉네임 
     public TextMeshPro nickNameTxt;
+    public GameObject starImg;
 
     //방향 값과 이동속도 값    
     [SerializeField] int h = 0; 
@@ -21,7 +22,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
     //원격 조종용 변수 (동기화를 위한)
     public Vector3 currPos = Vector3.zero; //위치
-    public  bool isMove = true;
+    public bool isMove = true;
 
 
     private void Awake()
@@ -41,21 +42,28 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
         if (pv.IsMine)//내 캐릭터 등록 시키기
         {
-            FindObjectOfType<CharController>().player = this;
-            gameMgr.myNickName.text = pv.Owner.NickName;
+            FindObjectOfType<CharController>().player = this;          
             nickNameTxt.color = Color.green;
             //내캐릭이 먼저 보이게하게
             transform.position -= Vector3.forward;
+            
+            this.tag = "Player";
+
         }
         else
         {
             //원격  동기화는 적용안함
-            rigidbody.gravityScale = 0.0f;
-            gameMgr.ohterNickName.text = pv.Owner.NickName;
+            rigidbody.gravityScale = 0.0f;          
             nickNameTxt.color = Color.blue;
+
+            this.tag = "OtherPlayer";
+
         }
 
         nickNameTxt.text = pv.Owner.NickName;
+
+        if (!pv.Owner.IsMasterClient)
+            starImg.SetActive(false);
     }
 
     private void Update()
@@ -67,9 +75,9 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (pv.IsMine) //내가 조종할때
         {
-            currPos = transform.position;
-            currPos.z = -1;
-            transform.position = currPos;
+            //currPos = transform.position;
+            //currPos.z = -1;
+            //transform.position = currPos;
 
             if (!isMove)
                 return;
@@ -78,6 +86,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
             velocity.y = rigidbody.velocity.y;
             rigidbody.velocity = velocity;
 
+            //test
             if (Input.GetKeyDown(KeyCode.A))
                 SetHit();
 

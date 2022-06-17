@@ -49,7 +49,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     private int score = 0;                          //점수 
 
     
-    float timer = 0.0f;                 //게임시간
+    float timer = 0.0f;                 //게임시간   
     float nextSpawnTime = 1.0f; //과일 스폰 주기
 
     bool gameStart = true;  //게임 상태 bool 변수
@@ -64,12 +64,12 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     {
         //씬에 있는 플레이어 오브젝트 불러오기
         playerObj = InGame.Inst.playerCharacters;
+        //점수 셋팅
+        scoreTxt.text = "0";
 
         //게임 시작
         StartCoroutine(GameStart());
 
-        //점수 셋팅
-        SetScoreTxt();
     }
 
     private void Update()
@@ -110,39 +110,37 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     }
 
     
-    public void AddScore(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환
+    public void AddScore(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환 //호출되는 곳은 마스터 클라이언트에서만 호출된다.
     {
-        ExitGames.Client.Photon.Hashtable playerHash = player.pv.Owner.CustomProperties;
+        //PunRPC 점수 증가 쏘기
+        pv.RPC("AddScore", player.pv.Owner, pos);          
+    }
+
+    [PunRPC]
+    void AddScore(Vector3 pos)//점수증가 RPC함수
+    {
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         //플레이어 에게 점수 적용시켜주기 
         //포톤 플레이어 SetCustomProperties을 이용하여 동기화
         if (playerHash.ContainsKey("score"))
         {
             playerHash["score"] = (int)playerHash["score"] + 100;
-            player.pv.Owner.SetCustomProperties(playerHash);
+            PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);     
+        }
 
-            //PRC 함수를 이용하여 먹은 플레이어의 클라에게 함수호출
-            pv.RPC("SetScoreTxt", player.pv.Owner);             //점수 늘렸으니 점수텍스트 갱신해줘
-            pv.RPC("SpawnCollect", player.pv.Owner, pos);     //과일 먹은 위치에 이펙트 켜줘
-        }          
+        
+        SetScoreTxt();//점수판 갱신
+        SpawnCollect(pos);  //흭득 이펙트 보여주기
     }
 
-  
-   [PunRPC]
     public void SetScoreTxt()   //점수판 갱신
-    {
-        //점수는 LocalPlayer.CustomProperties["score"]에 저장되니 예외 처리
-        if (PhotonNetwork.LocalPlayer.CustomProperties["score"] == null)
-        {
-            scoreTxt.text = "0";
-            return;
-        }
-        
+    {           
         score = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
         scoreTxt.text = score.ToString(); 
     }
 
-    [PunRPC]
-    void SpawnCollect(Vector3 pos)//과일 먹을시 이펙트 나오게 하기
+
+    void SpawnCollect(Vector3 pos)//과일 먹을시 이펙트 나오게 하기  //추후 오브젝트 풀로 바꾸기
     {       
         GameObject collect = Instantiate(collectObj, pos, Quaternion.identity);
         Destroy(collect, 0.5f);
@@ -151,7 +149,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     //게임 진행
     IEnumerator GameStart()
     {
-        playerHash = pv.Owner.CustomProperties;
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
 
         //서버에 점수 데이터 저장하기 및 초기화
         if (!playerHash.ContainsKey("score"))
@@ -160,7 +158,6 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
             playerHash["score"] = 0;
 
         score = 0;
-        scoreTxt.text = score.ToString();
 
         //각 게임 초기화 진행
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
@@ -207,8 +204,8 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["score"];
 
 
-        myScoreTxt.text = myscore.ToString();
-        otherScoreTxt.text = otherscore.ToString();
+        myScoreTxt.text ="점수 : " +  myscore.ToString();
+        otherScoreTxt.text = "점수 : " + otherscore.ToString();
 
         //승리 판정하기
         if (myscore == otherscore)

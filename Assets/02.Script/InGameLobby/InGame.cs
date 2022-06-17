@@ -45,7 +45,7 @@ public class InGame : MonoBehaviourPunCallbacks
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public GameObject[] MiniGame;       //미니게임이 담겨있는
 
-    //입장한 플레이어 목록
+    //캐릭터
     public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
 
 
@@ -82,9 +82,13 @@ public class InGame : MonoBehaviourPunCallbacks
         //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
 
-        //첫 셋팅
-        ohterNickName.text = "플레이어 기달리는 중...";
+        //첫 셋팅    
+        if (PhotonNetwork.PlayerListOthers.Length > 0)
+            ohterNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
+        else
+            ohterNickName.text = "플레이어 기달리는 중...";
 
+        myNickName.text = PhotonNetwork.LocalPlayer.NickName;
 
         //플레이어들 만들기
         CreatePlayer();
@@ -113,17 +117,7 @@ public class InGame : MonoBehaviourPunCallbacks
         //실시간 레디 체크
         CheckReady();
         //SetWinCount();
-
-        //test 
-        PlayerCharacter[] plays = FindObjectsOfType<PlayerCharacter>();
-        for (int i = 0; i < plays.Length; i++)
-        {
-            if (plays[i].pv.IsMine)
-                playerCharacters[0] = plays[i];
-            else
-                playerCharacters[1] = plays[i];
-        }
-
+   
     }
 
 //    #if (UNITY_ANDROID)
@@ -164,13 +158,12 @@ void CreatePlayer() //캐릭터 만들기
             a_AddPos.x = Random.Range(-2.0f, 2.0f);      
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
-
        
 
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-        GameObject playerObj = PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.charName, a_HPos, Quaternion.identity, 0);
+        PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.CharName.ToString(), a_HPos, Quaternion.identity, 0);
     }
 
 
@@ -197,6 +190,12 @@ void CreatePlayer() //캐릭터 만들기
 
     //만액 다른 플레이어가 나간다면 // 이함수는 방에있는 모든 플레이어가 호출된다. 하지만 방에는 2명 제한이라
     //1명만 남겠된다.
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        ohterNickName.text = newPlayer.NickName;
+    }
+
+
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
         ohterNickName.text = "플레이어 기달리는 중...";
@@ -208,11 +207,15 @@ void CreatePlayer() //캐릭터 만들기
             readyBtn.gameObject.SetActive(false);
         else
             readyBtn.gameObject.SetActive(true);
+
+        //방장 마크 옮기기
+        playerCharacters[0].starImg.SetActive(true);
     }
 
 
 
-#endregion
+
+    #endregion
 
 #region GameController 게임 진행 관련 함수
     public void ReadyBtn()  //레디 버튼 
@@ -277,6 +280,9 @@ void CreatePlayer() //캐릭터 만들기
         roomCanavas.SetActive(false);
         GameRoll.gameObject.SetActive(true);
 
+        playerCharacters[0] = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerCharacter>();
+        playerCharacters[1] = GameObject.FindGameObjectWithTag("OtherPlayer").GetComponent<PlayerCharacter>();
+
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
             StartCoroutine(StartSelGame());
     }
@@ -296,13 +302,14 @@ void CreatePlayer() //캐릭터 만들기
         yield return new WaitForSeconds(2.0f);
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 3);
+        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
     }
 
     [PunRPC]
     void StartMiniGame(int idx)
     {
         //정해진 미니게임 활성화 하기
+        roomCanavas.SetActive(false);
         GameRoll.gameObject.SetActive(false);
         MiniGame[idx].gameObject.SetActive(true);
     }

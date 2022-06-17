@@ -6,7 +6,11 @@ public class SoundMgr : MonoBehaviour
 {
     //싱글턴 패턴
     static public SoundMgr Inst;
-    
+
+    //오디오클립
+    public AudioClip[] audioClips;
+
+
     //bgm를 실행 시키는 
     AudioSource bgmSource;
 
@@ -49,28 +53,29 @@ public class SoundMgr : MonoBehaviour
             effectSource.Enqueue(newAudioSource);
         }
 
+        SoundInit();
+    }
+
+    void SoundInit()
+    {
+        for (int i = 0; i < audioClips.Length;i++)
+        {
+            sounds.Add(audioClips[i].name, audioClips[i]);
+        }
+
     }
 
     public void PlayBGM(string BgmName)   //BGM 실핼
     {
         //사운드가 있는지 체크
-        if(sounds.ContainsKey(BgmName))
+        if(sounds.ContainsKey(BgmName)) 
+            bgmSource.clip = sounds[BgmName];               
+        else //없으면
         {
-            bgmSource.clip = sounds[BgmName];          
+            Debug.Log(BgmName + "를 가진 사운드가 없습니다.");
+            return;
         }
-        else //없으면 리소스 폴더에서 해옴 (로드는 최초)
-        {
-            AudioClip newClip = Resources.Load("Sounds/" + BgmName) as AudioClip;
-            if (newClip == null)
-            {
-                Debug.Log(BgmName + "를 가진 사운드가 없습니다.");
-                return;
-            }
-            //새로운 클립 추가
-            sounds.Add(BgmName, newClip);
-            bgmSource.clip = newClip;
 
-        }
 
         bgmSource.Play();
 
@@ -83,23 +88,14 @@ public class SoundMgr : MonoBehaviour
         AudioSource nowAudio = effectSource.Dequeue();
 
         //사운드가 있는지 체크
-        if (sounds.ContainsKey(EffectName))
+        if (sounds.ContainsKey(EffectName))     
+            nowAudio.clip = sounds[EffectName]; 
+        else //없으면
         {
-            nowAudio.clip = sounds[EffectName];
+            Debug.Log(EffectName + "를 가진 사운드가 없습니다.");
+            return;
         }
-        else //없으면 리소스 폴더에서 해옴 (로드는 최초)
-        {
-            AudioClip newClip = Resources.Load("Sounds/" + EffectName) as AudioClip;
-            if (newClip == null)
-            {
-                Debug.Log(EffectName + "를 가진 사운드가 없습니다.");
-                return;
-            }
-            //새로운 클립 추가
-            sounds.Add(EffectName, newClip);
-            nowAudio.clip = newClip;
-
-        }
+        
 
         nowAudio.volume = effectVolum;
         nowAudio.Play();

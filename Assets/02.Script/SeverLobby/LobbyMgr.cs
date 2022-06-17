@@ -12,19 +12,13 @@ public class LobbyMgr : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {
+    {   
+        //로비 BGM On
         SoundMgr.Inst.PlayBGM(LobbyBGM);
-
+        //설정버튼 셋팅
         soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
-    }
-
-    private void Update()
-    {
-        if(Input.GetMouseButtonDown(0))
-        {
-            SoundMgr.Inst.PlayEffect(ClickEffect);
-        }
-
 
     }
+
+
 }
