@@ -15,6 +15,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     //플레이어 닉네임 
     public TextMeshPro nickNameTxt;
     public GameObject starImg;
+    public GameObject ready;
 
     //방향 값과 이동속도 값    
     [SerializeField] int h = 0; 
@@ -24,6 +25,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     public Vector3 currPos = Vector3.zero; //위치
     public bool isMove = true;
 
+  
 
     private void Awake()
     {
@@ -37,24 +39,28 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
     // Start is called before the first frame update
     void Start()
-    {
+    {     
         InGame gameMgr = FindObjectOfType<InGame>();
 
         if (pv.IsMine)//내 캐릭터 등록 시키기
         {
+            animator.SetInteger("Char", (int)UserData.CharName);
+
             FindObjectOfType<CharController>().player = this;          
-            nickNameTxt.color = Color.green;
+            nickNameTxt.color = Color.blue;
             //내캐릭이 먼저 보이게하게
             transform.position -= Vector3.forward;
             
             this.tag = "Player";
+
+            InGame.Inst.playerCharacters[0] = this;
 
         }
         else
         {
             //원격  동기화는 적용안함
             rigidbody.gravityScale = 0.0f;          
-            nickNameTxt.color = Color.blue;
+            nickNameTxt.color = Color.red;
 
             this.tag = "OtherPlayer";
 
@@ -64,6 +70,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
         if (!pv.Owner.IsMasterClient)
             starImg.SetActive(false);
+
     }
 
     private void Update()
@@ -134,23 +141,37 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         //로컬 플레이어의 위치 정보 송신
         if (stream.IsWriting)
         {                    
-            stream.SendNext(spriteRenderer.flipX ? 1 : 0);              
+            stream.SendNext(spriteRenderer.flipX ? 1 : 0);
+            stream.SendNext(animator.GetInteger("Char"));
         }
         else //원격 플레이어의 위치 정보 수신
         {                     
-            spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;         
+            spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
+            animator.SetInteger("Char", (int)stream.ReceiveNext());
         }
     }
 
     public void SetHit()
     {
-        pv.RPC("RPCHit", RpcTarget.AllViaServer);
-        //animator.SetTrigger("hit");
+        pv.RPC("RPCHit", RpcTarget.Others);
+        animator.SetTrigger("hit");
 
     }
     [PunRPC]
-    void RPCHit()//트리거 동기화
+    void RPCHit()//트리거 동기화 다른 플레이어도 보여지게
     {
         animator.SetTrigger("hit");
     }
+
+    public void Ready(bool bReady)
+    {
+        ready.SetActive(bReady);    
+        pv.RPC("RPCReady", RpcTarget.Others, bReady);
+    }
+    [PunRPC]
+    void RPCReady(bool bReady)
+    {   
+        ready.SetActive(bReady);
+    }
+
 }

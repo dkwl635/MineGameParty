@@ -156,6 +156,7 @@ MonoBehaviour:
   velocity: {x: 0, y: 0}
   currPos: {x: 0, y: 0, z: 0}
   isMove: 1
+  test: 1
 --- !u!95 &204309624633745975
 Animator:
   serializedVersion: 3
@@ -240,6 +241,9 @@ MonoBehaviour:
   - Type: 1
     SynchronizeType: 0
     Name: Blend
+  - Type: 3
+    SynchronizeType: 0
+    Name: Char
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0

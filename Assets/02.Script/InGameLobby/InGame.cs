@@ -29,21 +29,26 @@ public class InGame : MonoBehaviourPunCallbacks
   
    
     [Header("UI")]
-    public GameObject roomCanavas;  //게임 방 정보 창
+    public GameObject roomCanavas;  //게임 방 정보 창   
     public Button readyBtn;                 //레디 버튼    ... 반장은 없는 버튼
     public Text readyTxt;                     //레디 버튼 (준비완료, 준비) 를 나타낼 텍스트
     public Button StartBtn;                  //시작 버튼 .... 반장만 나올 버튼
-    public Text myNickName;               // 내닉네임 
-    public Text ohterNickName;             //상대 닉네임
+
+    public GameObject roomMark; //방장마크
+
+    public TextMeshProUGUI myNickName;               // 내닉네임 
+    public TextMeshProUGUI otherNickName;             //상대 닉네임
 
     public TextMeshProUGUI myWinCountTxt;   //내 승점
     public TextMeshProUGUI otherWinCountTxt;    //상대 승점
 
     public Button soundBtn;
 
+ 
     [Header("Game")]
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public GameObject[] MiniGame;       //미니게임이 담겨있는
+
 
     //캐릭터
     public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
@@ -72,80 +77,67 @@ public class InGame : MonoBehaviourPunCallbacks
     void Start()
     {
         SoundMgr.Inst.PlayBGM("InGame");
-
-
-//#if (UNITY_ANDROID)
-        //해상도 잡기
+               
         SetResolution();
-//#endif
-
         //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
-
-        //첫 셋팅    
-        if (PhotonNetwork.PlayerListOthers.Length > 0)
-            ohterNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
-        else
-            ohterNickName.text = "플레이어 기달리는 중...";
-
-        myNickName.text = PhotonNetwork.LocalPlayer.NickName;
-
+        //패널 셋팅
+        InitPanel();
+        
         //플레이어들 만들기
         CreatePlayer();
- 
-        //버튼 UI 셋팅하기
-        StartBtn.gameObject.SetActive(false);
-        
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-            readyBtn.gameObject.SetActive(false);
-        else
-            readyBtn.gameObject.SetActive(true);
-
 
         //플레이어 정보 SetCustomProperties 시키기
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
-        soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
-
+    
     }
     
-
-    private void Update()
+    void InitPanel() //입장시 패널 설정
     {
-        //실시간 레디 체크
-        CheckReady();
-        //SetWinCount();
-   
+        //사운드 설정하는 버튼 함수 연결
+        soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
+        
+        //패널 셋팅,버튼 UI 셋팅하기       
+        StartBtn.gameObject.SetActive(false);
+
+        //내닉네임 적용
+        myNickName.text = PhotonNetwork.LocalPlayer.NickName;
+
+
+        if (PhotonNetwork.LocalPlayer.IsMasterClient) //방장일경우
+        {
+            readyBtn.gameObject.SetActive(false);
+            roomMark.transform.SetParent(myNickName.transform, false);
+        }
+        else
+        {
+            readyBtn.gameObject.SetActive(true);
+            roomMark.transform.SetParent(otherNickName.transform, false);
+        }
+
+
+        if (PhotonNetwork.PlayerListOthers.Length > 0) //이미 누군가 있다면
+        {
+            //상대 닉네임 적용
+            otherNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
+        }
+        else
+            otherNickName.text = "플레이어 기달리는 중...";
+        
+        SetWinCount();
     }
 
-//    #if (UNITY_ANDROID)
-    /* 해상도 설정하는 함수 */
+  
     public void SetResolution()
     {
         int setWidth = 720; // 사용자 설정 너비
         int setHeight = 1280; // 사용자 설정 높이
-
-        int deviceWidth = Screen.width; // 기기 너비 저장
-        int deviceHeight = Screen.height; // 기기 높이 저장
-
         Screen.SetResolution(setWidth, setHeight, false); // SetResolution 함수 제대로 사용하기
 
-
-    //    if ((float)setWidth / setHeight < (float)deviceWidth / deviceHeight) // 기기의 해상도 비가 더 큰 경우
-    //    {
-    //        float newWidth = ((float)setWidth / setHeight) / ((float)deviceWidth / deviceHeight); // 새로운 너비
-    //        Camera.main.rect = new Rect((1f - newWidth) / 2f, 0f, newWidth, 1f); // 새로운 Rect 적용
-    //    }
-    //    else // 게임의 해상도 비가 더 큰 경우
-    //    {
-    //        float newHeight = ((float)deviceWidth / deviceHeight) / ((float)setWidth / setHeight); // 새로운 높이
-    //        Camera.main.rect = new Rect(0f, (1f - newHeight) / 2f, 1f, newHeight); // 새로운 Rect 적용
-    //    }
     }
-//#endif
-
 void CreatePlayer() //캐릭터 만들기
     {
         //랜덤한 위치에 만들어주기
@@ -158,17 +150,20 @@ void CreatePlayer() //캐릭터 만들기
             a_AddPos.x = Random.Range(-2.0f, 2.0f);      
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
-       
+
 
         //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
         //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
         //내 케릭터만 떨어지는 모습을 볼수 있다.
-        PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.CharName.ToString(), a_HPos, Quaternion.identity, 0);
+       // PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.CharName.ToString(), a_HPos, Quaternion.identity, 0);
+        PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);
+        
+
     }
 
 
 #region RoomController   //서버 관련 함수
-    public void LeftRoom() //방을나갈려는 함수
+    public void LeftRoom() //방을나갈려는 함수 //나가기 버튼에 연결
     {
         //저장된 CustomProperties 초기화 시켜주기
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
@@ -179,37 +174,39 @@ void CreatePlayer() //캐릭터 만들기
             PhotonNetwork.CurrentRoom.CustomProperties.Clear();       
         }
 
+        //캐릭터 삭제
+        PhotonNetwork.Destroy(playerCharacters[0].gameObject);
+
         //방을 떠나고 다시 로비로 접속하기
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.JoinLobby();
 
+ 
         //씬 전환해주기
         SceneManager.LoadScene("ServerLobby");
        
     }
-
-    //만액 다른 플레이어가 나간다면 // 이함수는 방에있는 모든 플레이어가 호출된다. 하지만 방에는 2명 제한이라
-    //1명만 남겠된다.
-    public override void OnPlayerEnteredRoom(Player newPlayer)
+    public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
     {
-        ohterNickName.text = newPlayer.NickName;
+        otherNickName.text = newPlayer.NickName;
+        otherWinCountTxt.text = "";
     }
-
-
-    public override void OnPlayerLeftRoom(Player otherPlayer)
+    public override void OnPlayerLeftRoom(Player otherPlayer) //만약 다른 플레이어가 나간다면 
     {
-        ohterNickName.text = "플레이어 기달리는 중...";
+        otherNickName.text = "플레이어 기달리는 중...";
+        otherWinCountTxt.text = "";
         Debug.Log(otherPlayer.NickName + "나감");
 
         StartBtn.gameObject.SetActive(false);
+        //레디마크 off
+        playerCharacters[0].Ready(false);
+        readyBtn.gameObject.SetActive(false);
 
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-            readyBtn.gameObject.SetActive(false);
-        else
-            readyBtn.gameObject.SetActive(true);
 
         //방장 마크 옮기기
         playerCharacters[0].starImg.SetActive(true);
+            roomMark.transform.SetParent(myNickName.transform, false);
+
     }
 
 
@@ -228,39 +225,31 @@ void CreatePlayer() //캐릭터 만들기
         }
         else
         {
-            readyTxt.text = "준비";
+            readyTxt.text = "준비하기";
         }
 
         //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
+        //캐릭터 레디 표시
+        playerCharacters[0].Ready(isReady);
     }
-    public void CheckReady() //래디를 확인하는 함수
+
+    //OnPlayerProperties 변화를 감지해서 레디를 확인해서 게임 시작할수 있도록
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer
+                 , ExitGames.Client.Photon.Hashtable changedProps)
     {
-        //오로지 마스터 클라이언트만 확인 
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
             return;
 
-        //방에 혼자면 할 필요 없음
-        if (PhotonNetwork.PlayerListOthers.Length <= 0)
-            return;
-
-        //모든 유저 체크 
-        
-        bool allReady = true;
-        var allPlayer = PhotonNetwork.PlayerListOthers;
-        foreach (var player in allPlayer)
+        if (targetPlayer != PhotonNetwork.LocalPlayer)
         {
-            if (player.CustomProperties.ContainsKey("ready"))
+            if (changedProps.ContainsKey("ready"))
             {
-                if (!(bool)player.CustomProperties["ready"])
-                    allReady = false;
+                StartBtn.gameObject.SetActive((bool)changedProps["ready"]);
             }
-            else
-                allReady = false;
-        }      
-        StartBtn.gameObject.SetActive(allReady);
-
+        }
     }
 
     public void GameStartBtn() //반장만 누를수 있는버튼
@@ -276,12 +265,14 @@ void CreatePlayer() //캐릭터 만들기
         readyTxt.text = "준비";
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
         roomCanavas.SetActive(false);
+       
         GameRoll.gameObject.SetActive(true);
-
-        playerCharacters[0] = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerCharacter>();
+    
+        //두번째 플레이어 등록
         playerCharacters[1] = GameObject.FindGameObjectWithTag("OtherPlayer").GetComponent<PlayerCharacter>();
+
+        playerCharacters[0].Ready(false);
 
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
             StartCoroutine(StartSelGame());
@@ -309,6 +300,7 @@ void CreatePlayer() //캐릭터 만들기
     void StartMiniGame(int idx)
     {
         //정해진 미니게임 활성화 하기
+
         roomCanavas.SetActive(false);
         GameRoll.gameObject.SetActive(false);
         MiniGame[idx].gameObject.SetActive(true);
@@ -332,16 +324,30 @@ void CreatePlayer() //캐릭터 만들기
         if (PhotonNetwork.PlayerListOthers.Length <= 0)
             return;
 
-        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("winCount") && PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
+        if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("winCount"))
         {
             int winCount = (int)PhotonNetwork.LocalPlayer.CustomProperties["winCount"];
             if (winCount != 0)
                 myWinCountTxt.text = winCount + "승";
+            else
+                myWinCountTxt.text = "";
+        }
+        else
+            myWinCountTxt.text = "";
 
-            winCount = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["winCount"];
+        if (PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
+        {          
+          int  winCount = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["winCount"];
             if (winCount != 0)
                 otherWinCountTxt.text = winCount + "승";
+            else
+                otherWinCountTxt.text = "";
         }
+        else
+            otherWinCountTxt.text = "";
+
+
+
 
     }
     public void SetLobby()// 로비 창 새로고침

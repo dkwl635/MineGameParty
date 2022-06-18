@@ -2422,7 +2422,9 @@ namespace Photon.Pun
                             {
                                 if (PhotonNetwork.LogLevel >= PunLogLevel.ErrorsOnly)
                                 {
+                                  
                                     Debug.LogErrorFormat("Failed to find a PhotonView with ID={0} for incoming OwnershipUpdate event (newOwnerActorNumber={1}), sender={2}. If you load scenes, make sure to pause the message queue.", viewId, newOwnerId, actorNr);
+                                   
                                 }
 
                                 continue;
