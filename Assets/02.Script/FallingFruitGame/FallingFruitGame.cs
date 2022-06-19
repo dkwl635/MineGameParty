@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Photon.Realtime;
 
-public class FallingFruitGame : MonoBehaviourPunCallbacks
+public class FallingFruitGame : Game
 {
-    PhotonView pv;
-
+   
     enum FruitsType //과일 오브젝트를 불러오기 위한 
     {
         Apple,
@@ -25,8 +25,7 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public static FallingFruitGame Inst;    //싱글턴 패턴을 위한
     public PlayerCharacter[] playerObj;   //과일들의 충돌캐릭터들의 거리 계산을 위한 플레이어들 캐릭터변수
 
-    //동기화를 위한 변수 선언
-    ExitGames.Client.Photon.Hashtable playerHash;
+
 
     public GameObject fruitsSpanwPos; //과일의 중심스폰위치
 
@@ -34,25 +33,16 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
     public GameObject collectObj;   //과일을 먹고 나올 이펙트 프리팹
 
     [Header("UI")]
+    public GameObject GamePanel;
     public TextMeshProUGUI scoreTxt;    //점수 
     public TextMeshProUGUI CountTxt;   //남은시간
-
-    public GameObject ResultPanel;          //결과창
-    public TextMeshProUGUI myNickTxt;       //내 닉네임 
-    public TextMeshProUGUI otherNickTxt;    //상대 닉네임
-    public TextMeshProUGUI myScoreTxt;      // 내 점수
-    public TextMeshProUGUI otherScoreTxt;   //상대 점수
-    public TextMeshProUGUI winOrLose;       //승리판정
-
-    public GameObject ok_Btn;                   //확인 버튼
-
     private int score = 0;                          //점수 
 
     
     float timer = 0.0f;                 //게임시간   
     float nextSpawnTime = 1.0f; //과일 스폰 주기
 
-    bool gameStart = true;  //게임 상태 bool 변수
+    bool gameStart = false;  //게임 상태 bool 변수
 
     private void Awake()
     {
@@ -60,39 +50,94 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         pv = GetComponent<PhotonView>();
     }
 
-    public override void OnEnable() //추후 게임을 다시 시작할경우 셋팅
+   
+    public override void StartGame()
     {
+        GamePanel.SetActive(true);
         //씬에 있는 플레이어 오브젝트 불러오기
         playerObj = InGame.Inst.playerCharacters;
         //점수 셋팅
+        score = 0;
         scoreTxt.text = "0";
 
-        //게임 시작
-        StartCoroutine(GameStart());
+        //등록된 점수 초기화
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
+        if (playerHash.ContainsKey("score"))
+            playerHash["score"] = 0;
+        else
+            playerHash.Add("score", 0);
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
+    
+        StartCoroutine(Game_Update());
+
+        if (PhotonNetwork.IsMasterClient)
+            StartCoroutine(SpawnFruits_Update());
+
 
     }
 
-    private void Update()
+    IEnumerator Game_Update()
     {
-        if (!gameStart)
-            return;
+        gameStart = true;
+        int count = 15; //15초
 
-        //과일 스폰은 오로지 클라이언마스터만
-        if (!PhotonNetwork.LocalPlayer.IsMasterClient)
-            return;
-   
-        //과일 스폰
-        timer += Time.deltaTime;
-        if(timer >= nextSpawnTime)
+        CountTxt.gameObject.SetActive(true);
+        while (count >= 0)
         {
-            int randCount = Random.Range(2, 5);
-            for (int i = 0; i < randCount; i++)
+            CountTxt.text = count.ToString();
+            count--;
+            yield return new WaitForSeconds(1.0f);
+        }
+        
+        //게임 종료
+        gameStart = false;
+
+
+        //과일오브젝트 삭제
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {
+            Fruits[] fruits = FindObjectsOfType<Fruits>();
+            for (int i = 0; i < fruits.Length; i++)
             {
-                SpawnFruits(); //과일 스폰
+                PhotonNetwork.Destroy(fruits[i].gameObject);
+            }
+        }
+
+        CountTxt.text = "종료!!";
+        yield return new WaitForSeconds(1.5f);
+        CountTxt.text = "결과발표";
+        yield return new WaitForSeconds(1.0f);
+        CountTxt.text = "";
+
+        
+
+        InGame.Inst.ShowResult();
+
+        GamePanel.SetActive(false);
+    }
+
+    IEnumerator SpawnFruits_Update()
+    {
+       while(gameStart)
+        {
+            yield return null;
+
+            //과일 스폰
+            timer += Time.deltaTime;
+            if (timer >= nextSpawnTime)
+            {
+                int randCount = Random.Range(2, 5);
+                for (int i = 0; i < randCount; i++)
+                {
+                    SpawnFruits(); //과일 스폰
+                }
+
+                timer = 0.0f;
+                nextSpawnTime = Random.Range(0.7f, 1.5f);
             }
 
-            timer = 0.0f;
-            nextSpawnTime = Random.Range(0.7f, 1.5f);
         }
     }
 
@@ -108,16 +153,15 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
         PhotonNetwork.InstantiateRoomObject("Fruits/" + name, fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);  
     }
-
     
-    public void AddScore(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환 //호출되는 곳은 마스터 클라이언트에서만 호출된다.
+    public void GetFruit(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환 //호출되는 곳은 마스터 클라이언트에서만 호출된다.
     {
-        //PunRPC 점수 증가 쏘기
-        pv.RPC("AddScore", player.pv.Owner, pos);          
+        //PunRPC 점수 증가 함수 먹은 유저에게 결과 보내기
+        pv.RPC("GetFruit", player.pv.Owner, pos);          
     }
 
     [PunRPC]
-    void AddScore(Vector3 pos)//점수증가 RPC함수
+    void GetFruit(Vector3 pos)//점수증가 와 먹은 위치에 효과보여주시    
     {
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         //플레이어 에게 점수 적용시켜주기 
@@ -126,19 +170,25 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         {
             playerHash["score"] = (int)playerHash["score"] + 100;
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);     
-        }
-
-        
-        SetScoreTxt();//점수판 갱신
+        }   
+     
         SpawnCollect(pos);  //흭득 이펙트 보여주기
     }
 
-    public void SetScoreTxt()   //점수판 갱신
-    {           
-        score = (int)PhotonNetwork.LocalPlayer.CustomProperties["score"];
-        scoreTxt.text = score.ToString(); 
+    //PlayerProperties들이 업데이트 된다면 점수 갱신
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer
+                     , ExitGames.Client.Photon.Hashtable changedProps)
+    {
+        //자기자신일때
+        if (targetPlayer.Equals(PhotonNetwork.LocalPlayer))
+        {
+            if (changedProps.ContainsKey("score"))
+            {
+                score = (int)changedProps["score"];
+                scoreTxt.text = score.ToString();
+            }
+        }
     }
-
 
     void SpawnCollect(Vector3 pos)//과일 먹을시 이펙트 나오게 하기  //추후 오브젝트 풀로 바꾸기
     {       
@@ -146,101 +196,6 @@ public class FallingFruitGame : MonoBehaviourPunCallbacks
         Destroy(collect, 0.5f);
     }
 
-    //게임 진행
-    IEnumerator GameStart()
-    {
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-
-        //서버에 점수 데이터 저장하기 및 초기화
-        if (!playerHash.ContainsKey("score"))
-            playerHash.Add("score", 0);
-        else
-            playerHash["score"] = 0;
-
-        score = 0;
-
-        //각 게임 초기화 진행
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-        yield return new WaitForSeconds(1.0f);
-
-        gameStart = true;
-        int count = 15;
-
-        CountTxt.gameObject.SetActive(true);
-        while (count >= 0)
-        {
-            CountTxt.text = count.ToString();
-            count--;
-            yield return new WaitForSeconds(1.0f);
-        }
-
-        gameStart = false;
-
-        //GameEnd
-
-        //과일오브젝트 삭제
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {    
-            Fruits[] fruits = FindObjectsOfType<Fruits>();
-            for (int i = 0; i < fruits.Length; i++)
-            {
-                PhotonNetwork.Destroy(fruits[i].gameObject);
-            }
-        }
-
-        CountTxt.text = "종료!!";
-        yield return new WaitForSeconds(1.5f);
-        CountTxt.text = "결과발표";
-        yield return new WaitForSeconds(1.0f);
-        CountTxt.text = "";
-
-        //결과창 오픈
-        ResultPanel.SetActive(true);
-        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
-        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
-
-        int myscore = score;
-        int otherscore = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["score"];
-
-
-        myScoreTxt.text ="점수 : " +  myscore.ToString();
-        otherScoreTxt.text = "점수 : " + otherscore.ToString();
-
-        //승리 판정하기
-        if (myscore == otherscore)
-        {
-            winOrLose.text = "무승부";
-            winOrLose.color = Color.green;
-        }
-        else if (myscore > otherscore)
-        {
-            winOrLose.text = "승리";
-            winOrLose.color = Color.blue;
-            //D
-            InGame.Inst.WinGame();  //본 게임메니저에서 승리 카운트 해주기
-        }
-        else if (myscore < otherscore)
-        {
-            winOrLose.text = "패배";
-            winOrLose.color = Color.red;
-        }
-
-        yield return new WaitForSeconds(2.0f);
-
-        ok_Btn.SetActive(true);
-    }
-
-    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
-    {
-        //미니게임 (과일먹기) 종료
-        ok_Btn.SetActive(false);
-        ResultPanel.SetActive(false);
-        this.gameObject.SetActive(false);
-
-        //화면 갱신해주기
-        InGame.Inst.SetLobby();
-    }
 
 
 }

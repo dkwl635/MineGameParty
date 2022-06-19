@@ -45,7 +45,7 @@ public class Fruits : MonoBehaviourPunCallbacks
             
             if(get)
             {
-                FallingFruitGame.Inst.AddScore(player, this.transform.position);
+                FallingFruitGame.Inst.GetFruit(player, this.transform.position);
                 PhotonNetwork.Destroy(this.pv);
             }
 

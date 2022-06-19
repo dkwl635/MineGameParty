@@ -38,13 +38,13 @@ public class InGame : MonoBehaviourPunCallbacks
 
     public TextMeshProUGUI myNickName;               // 내닉네임 
     public TextMeshProUGUI otherNickName;             //상대 닉네임
-
     public TextMeshProUGUI myWinCountTxt;   //내 승점
     public TextMeshProUGUI otherWinCountTxt;    //상대 승점
+    public Button soundBtn; //사운드 설정버튼
 
-    public Button soundBtn;
+    [Header("ResultUI")]
+    public ResultUI resultUI;
 
- 
     [Header("Game")]
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public GameObject[] MiniGame;       //미니게임이 담겨있는
@@ -52,8 +52,6 @@ public class InGame : MonoBehaviourPunCallbacks
 
     //캐릭터
     public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
-
-
     bool isReady = false;   //레디 상태
 
     private void Awake()
@@ -131,7 +129,7 @@ public class InGame : MonoBehaviourPunCallbacks
     }
 
   
-    public void SetResolution()
+    public void SetResolution() //로비 메니저로 갈예정
     {
         int setWidth = 720; // 사용자 설정 너비
         int setHeight = 1280; // 사용자 설정 높이
@@ -290,8 +288,6 @@ void CreatePlayer() //캐릭터 만들기
             yield return null;
         }
 
-        yield return new WaitForSeconds(2.0f);
-
         // 정해진 미니게임 시작하기
         pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
     }
@@ -303,7 +299,8 @@ void CreatePlayer() //캐릭터 만들기
 
         roomCanavas.SetActive(false);
         GameRoll.gameObject.SetActive(false);
-        MiniGame[idx].gameObject.SetActive(true);
+        //MiniGame[idx].gameObject.SetActive(true);
+        MiniGame[idx].gameObject.GetComponent<FallingFruitGame>().StartGame();
     }
 
     public void WinGame() //승리카운트
@@ -350,13 +347,18 @@ void CreatePlayer() //캐릭터 만들기
 
 
     }
+
+    public void ShowResult()//결과창 보여주기
+    {
+        resultUI.SetResult();
+    }
+
     public void SetLobby()// 로비 창 새로고침
     {
         roomCanavas.SetActive(true);
         GameRoll.gameObject.SetActive(false);
 
         isReady = false;
-
         StartBtn.gameObject.SetActive(false);
 
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
