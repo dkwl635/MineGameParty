@@ -47,7 +47,7 @@ public class InGame : MonoBehaviourPunCallbacks
 
     [Header("Game")]
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
-    public GameObject[] MiniGame;       //미니게임이 담겨있는
+    public Game[] MiniGame;       //미니게임이 담겨있는
 
 
     //캐릭터
@@ -200,7 +200,6 @@ void CreatePlayer() //캐릭터 만들기
         playerCharacters[0].Ready(false);
         readyBtn.gameObject.SetActive(false);
 
-
         //방장 마크 옮기기
         playerCharacters[0].starImg.SetActive(true);
             roomMark.transform.SetParent(myNickName.transform, false);
@@ -229,6 +228,7 @@ void CreatePlayer() //캐릭터 만들기
         //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+        Debug.Log("ImReady");
 
         //캐릭터 레디 표시
         playerCharacters[0].Ready(isReady);
@@ -243,8 +243,9 @@ void CreatePlayer() //캐릭터 만들기
 
         if (targetPlayer != PhotonNetwork.LocalPlayer)
         {
+            Debug.Log("ready");
             if (changedProps.ContainsKey("ready"))
-            {
+            {   
                 StartBtn.gameObject.SetActive((bool)changedProps["ready"]);
             }
         }
@@ -259,13 +260,15 @@ void CreatePlayer() //캐릭터 만들기
     [PunRPC]
     public void GameSelStart()
     {
+        Debug.Log("게임 시작");
+
         isReady = false;
         readyTxt.text = "준비";
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         roomCanavas.SetActive(false);
        
-        GameRoll.gameObject.SetActive(true);
+        GameRoll.roller.SetActive(true);
     
         //두번째 플레이어 등록
         playerCharacters[1] = GameObject.FindGameObjectWithTag("OtherPlayer").GetComponent<PlayerCharacter>();
@@ -289,18 +292,15 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllBufferedViaServer, 0);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
     }
 
     [PunRPC]
-    void StartMiniGame(int idx)
-    {
-        //정해진 미니게임 활성화 하기
-
+    void StartMiniGame(int idx)//정해진 미니게임 활성화 하기
+    {     
         roomCanavas.SetActive(false);
-        GameRoll.gameObject.SetActive(false);
-        //MiniGame[idx].gameObject.SetActive(true);
-        MiniGame[idx].gameObject.GetComponent<FallingFruitGame>().StartGame();
+        MiniGame[idx].StartGame();
+       
     }
 
     public void WinGame() //승리카운트
@@ -332,6 +332,8 @@ void CreatePlayer() //캐릭터 만들기
         else
             myWinCountTxt.text = "";
 
+
+
         if (PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))
         {          
           int  winCount = (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["winCount"];
@@ -350,14 +352,13 @@ void CreatePlayer() //캐릭터 만들기
 
     public void ShowResult()//결과창 보여주기
     {
-        resultUI.SetResult();
+        resultUI.SetResult();   
     }
 
     public void SetLobby()// 로비 창 새로고침
     {
         roomCanavas.SetActive(true);
-        GameRoll.gameObject.SetActive(false);
-
+       
         isReady = false;
         StartBtn.gameObject.SetActive(false);
 

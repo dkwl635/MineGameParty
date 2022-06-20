@@ -7,15 +7,10 @@ using Photon.Pun;
 using Photon.Realtime;
 
 
-public class StairGame : MonoBehaviourPunCallbacks
+public class StairGame : Game
 {
-
-    PhotonView pv;
-
-
     //내 플레이어
     public PlayerCharacter myPlayer;
-
     //캐릭터들
     PlayerCharacter[] players;
 
@@ -25,20 +20,19 @@ public class StairGame : MonoBehaviourPunCallbacks
     //계단 처음 스폰 위치
     public GameObject spawnPosObj;
     Vector3 spawnPos = Vector3.zero; 
-    //소환된 계단들을 담아둘 링크드 리스트
+    //소환된 계단들을 담아둘  큐 
     Queue<Stairs> stairs = new Queue<Stairs>();
     //마지막 계단을 확인하기 위해
     Stairs lastStair;
 
-    //소환된 계단을 담아둘 게임으오브젝트
+    //소환된 계단을 담아둘 게임오브젝트
     public GameObject stairsGroup;
-    //카메라
+    //카메라 //캐릭터가 올라가기 때문에 카메라와 배경화면도 같이 올리기 위해서
     GameObject camera;
     //배경
     GameObject BG;
 
     //점수 텍스트
-    int score = 0;
     public TextMeshProUGUI scroe_Txt;
 
     //제한시간
@@ -55,71 +49,50 @@ public class StairGame : MonoBehaviourPunCallbacks
     //시작 카운트
     public TextMeshProUGUI countText;
 
-    //동기화를 위한 변수 선언
-    ExitGames.Client.Photon.Hashtable playerHash;
 
-
-    [Header("ResultPanel")]
-    public GameObject ResultPanel;          //결과창
-   
-    public TextMeshProUGUI myNickTxt;       //내 닉네임 
-    public TextMeshProUGUI otherNickTxt;    //상대 닉네임
-    public TextMeshProUGUI myScoreTxt;      // 내 점수
-    public TextMeshProUGUI otherScoreTxt;   //상대 점수
-    public TextMeshProUGUI winOrLose;       //승리판정
-
-    public GameObject ok_Btn;                   //확인 버튼
-
-
-    //private void Start()
-    private void OnEnable()
+    public override void StartGame()
     {
-        pv = GetComponent<PhotonView>();
+        base.StartGame();
 
+        //캐릭터 설정
         players = InGame.Inst.playerCharacters;
         myPlayer = players[0];
 
+        //상대캐릭터는 반투명으로
         otherSprite = players[1].GetComponent<SpriteRenderer>();
         otherSprite.color = new Color(1, 1, 1, 0.5f);
 
         camera = Camera.main.gameObject;
         BG = GameObject.Find("BG");
 
-        GameObject.Find("LeftButton").GetComponent<Button>().onClick.AddListener(LeftMove);
-        GameObject.Find("RightButton").GetComponent<Button>().onClick.AddListener(RightMove);
+        //올라가는 버튼 적용
+        Button LBT = GameObject.Find("LeftButton").GetComponent<Button>();
+        LBT.onClick.RemoveAllListeners();
+        LBT.onClick.AddListener(LeftMove);
 
-        if(PhotonNetwork.IsMasterClient)
-        {
-            FirstSpawnStair();
+        Button RBT = GameObject.Find("RightButton").GetComponent<Button>();
+        RBT.onClick.RemoveAllListeners();
+        RBT.onClick.AddListener(RightMove);
 
+        //계단 생성하기
+        if (PhotonNetwork.IsMasterClient)
             for (int i = 0; i < 20; i++)
-            {
                 SpawnStair();
-            }     
-        }
-
-
+            
+       
+        //좌우 이동을 막는다
         myPlayer.isMove = false;
 
+        //캐릭터 이동
         spawnPos = spawnPosObj.transform.position + Vector3.up;
         spawnPos.z = myPlayer.transform.position.z;
-
-        myPlayer.transform.position = spawnPos;
-        score = 0;
-
+        myPlayer.transform.position = spawnPos;   
+       
         GamePanel.SetActive(true);
-
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-        if (playerHash.ContainsKey("StairGameScore"))
-            playerHash["StairGameScore"] = 0;
-        else
-            playerHash.Add("StairGameScore", 0);
-
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-        StartCoroutine(GameStart());
+        StartCoroutine(Game_Co());
     }
 
+  
     public void RightMove()
     {
         if (!game)
@@ -145,16 +118,16 @@ public class StairGame : MonoBehaviourPunCallbacks
         CheckStair();
     }
 
-    IEnumerator GameStart()
+    IEnumerator Game_Co()
     {
         countText.text = "3";
         yield return new WaitForSeconds(1.0f);
-
         countText.text = "2";
         yield return new WaitForSeconds(1.0f);
         countText.text = "1";
         yield return new WaitForSeconds(1.0f);
         countText.text = "Start!!";
+
         game = true;
         gageBar.fillAmount = 1.0f;
         timer = 2.0f;
@@ -194,22 +167,6 @@ public class StairGame : MonoBehaviourPunCallbacks
         if (Input.GetKeyDown(KeyCode.RightArrow))
             RightMove();
 
-        //if (PhotonNetwork.IsMasterClient && game)
-        //    SpawnCheckStair();
-
-
-        //if (!game)
-        //    return;
-
-        //if (timer > 0)
-        //{
-        //    timer -= Time.deltaTime;
-        //    gageBar.fillAmount = timer / nextTimer;
-        //    if (timer <= 0)
-        //    {
-        //        GameOver();
-        //    }
-        //}
     }
 
 
@@ -247,21 +204,22 @@ public class StairGame : MonoBehaviourPunCallbacks
 
     }
 
-
-    void FirstSpawnStair()
-    {
-        Stairs newStairs = PhotonNetwork.InstantiateRoomObject("Stairs", spawnPosObj.transform.position, Quaternion.identity).GetComponent<Stairs>();
-            //GameObject.Instantiate(stairPrefab).GetComponent<Stairs>();     
-        newStairs.num = 0;
-        stairs.Enqueue(newStairs);
-        lastStair = newStairs;
-        newStairs.transform.SetParent(stairsGroup.transform);
-    }
-
+  
     void SpawnStair()
     {
-        //새로운 다음 계단 만들기
-       
+        //새로운 다음 계단 만들기   
+
+        if(stairs.Count.Equals(0))
+        {
+            Stairs newStairs = PhotonNetwork.InstantiateRoomObject("Stairs", spawnPosObj.transform.position, Quaternion.identity).GetComponent<Stairs>();
+            newStairs.num = 0;
+            stairs.Enqueue(newStairs);
+            lastStair = newStairs;
+            newStairs.transform.SetParent(stairsGroup.transform);
+
+            return;
+        }
+
         int nextX = 0;   
         if (lastStair.num == 3)
         {
@@ -275,9 +233,8 @@ public class StairGame : MonoBehaviourPunCallbacks
         {
             nextX = Random.Range(0, 2) == 0 ? -1 : 1;        
         }
-
-        //Stairs newStairs = GameObject.Instantiate(stairPrefab).GetComponent<Stairs>()   ;
-        Vector3 nextPos = new Vector3(nextX , 1);
+    
+        Vector3 nextPos = new Vector3(nextX , 1);//이전 칸 보다 좌우는 랜덤 위로 1칸 증가
         nextPos = lastStair.transform.position + nextPos;
 
         GameObject newStairObj = PhotonNetwork.InstantiateRoomObject("Stairs", nextPos, Quaternion.identity);
@@ -305,10 +262,10 @@ public class StairGame : MonoBehaviourPunCallbacks
             scroe_Txt.text = score.ToString();
 
             playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-            if (playerHash.ContainsKey("StairGameScore"))
-                playerHash["StairGameScore"] = (int)playerHash["StairGameScore"] + 1;
+            if (playerHash.ContainsKey("score"))
+                playerHash["score"] = (int)playerHash["score"] + 1;
             else
-                playerHash.Add("StairGameScore", 1);
+                playerHash.Add("score", 1);
 
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
@@ -339,15 +296,7 @@ public class StairGame : MonoBehaviourPunCallbacks
     }
 
     IEnumerator GameEnd_Co()
-    {
-
-        ResultPanel.SetActive(true);
-        GamePanel.SetActive(false);
-
-        winOrLose.text = "";
-        myScoreTxt.text = "0";
-        otherScoreTxt.text = "0";
-
+    {    
         yield return new WaitForSeconds(0.5f);
         otherSprite.color = Color.white;
         players[0].transform.position = Vector3.zero;
@@ -356,67 +305,28 @@ public class StairGame : MonoBehaviourPunCallbacks
         camera.transform.position = new Vector3(0, 0, camera.transform.position.z);
         BG.transform.position = new Vector3(0, 0, BG.transform.position.z);
 
-        while (stairs.Count > 0)
-        {
+        while (stairs.Count > 0)    
             PhotonNetwork.Destroy(stairs.Dequeue().gameObject);
-        }
+        
         stairs.Clear();
 
-
-        winOrLose.text = "결과는..";
-        winOrLose.color = Color.green;
-
-        
-        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
-        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
-
-        yield return new WaitForSeconds(1.5f);
-    
-        int myscore = score;
-        int otherscore = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("StairGameScore") ? (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["StairGameScore"] : 0;
-
-
-        myScoreTxt.text = myscore.ToString();
-        otherScoreTxt.text = otherscore.ToString();
-
-        //승리 판정하기
-        if (myscore == otherscore)
-        {
-            winOrLose.text = "무승부";
-            winOrLose.color = Color.green;
-        }
-        else if (myscore > otherscore)
-        {
-            winOrLose.text = "승리";
-            winOrLose.color = Color.blue;
-            //D
-            InGame.Inst.WinGame();  //본 게임메니저에서 승리 카운트 해주기
-        }
-        else if (myscore < otherscore)
-        {
-            winOrLose.text = "패배";
-            winOrLose.color = Color.red;
-        }
-
+        countText.text = "종료";
+        yield return new WaitForSeconds(1.0f);
+        countText.text = "결과는";
+        yield return new WaitForSeconds(1.0f);
         myPlayer.isMove = true;
+        countText.text = "";
 
-        ok_Btn.SetActive(true);
+        GamePanel.SetActive(false);
+
+        InGame.Inst.ShowResult();
+
+
+
+
     }
 
    
-
-    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
-    {
-        //미니게임 종료
-        ok_Btn.SetActive(false);
-        ResultPanel.SetActive(false);
-        this.gameObject.SetActive(false);
-
-       
-
-        //화면 갱신해주기
-        InGame.Inst.SetLobby();
-    }
 
 
 }

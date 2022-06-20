@@ -44,15 +44,18 @@ public class FallingFruitGame : Game
 
     bool gameStart = false;  //게임 상태 bool 변수
 
-    private void Awake()
+    protected override void Init()
     {
+        base.Init();
+
         Inst = this;
-        pv = GetComponent<PhotonView>();
     }
 
-   
+
     public override void StartGame()
     {
+        base.StartGame();
+
         GamePanel.SetActive(true);
         //씬에 있는 플레이어 오브젝트 불러오기
         playerObj = InGame.Inst.playerCharacters;
@@ -60,17 +63,8 @@ public class FallingFruitGame : Game
         score = 0;
         scoreTxt.text = "0";
 
-        //등록된 점수 초기화
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-        if (playerHash.ContainsKey("score"))
-            playerHash["score"] = 0;
-        else
-            playerHash.Add("score", 0);
-
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-    
-        StartCoroutine(Game_Update());
+      
+        StartCoroutine(Game_Co());
 
         if (PhotonNetwork.IsMasterClient)
             StartCoroutine(SpawnFruits_Update());
@@ -78,7 +72,7 @@ public class FallingFruitGame : Game
 
     }
 
-    IEnumerator Game_Update()
+    IEnumerator Game_Co()
     {
         gameStart = true;
         int count = 15; //15초
@@ -116,6 +110,8 @@ public class FallingFruitGame : Game
         InGame.Inst.ShowResult();
 
         GamePanel.SetActive(false);
+
+
     }
 
     IEnumerator SpawnFruits_Update()

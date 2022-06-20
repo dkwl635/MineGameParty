@@ -6,9 +6,8 @@ using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
+public class OXGame : Game
 {
-    PhotonView pv;
 
     enum OX
     {
@@ -16,6 +15,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         X,
         None,
     }
+
 
 
     //문제가 나오는 Text
@@ -26,12 +26,13 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     List<int> questionNum = new List<int>();
     int currQuestion = 0;
     int step = 0;
+    bool bIng = false;
 
     //플레이어가 선택한것
     OX myChoose = OX.None;
     OX otherChoose = OX.None;
+    
     bool choose = false;
-
     //OX 선택 버튼
     public GameObject O_Btn;
     public GameObject X_Btn;
@@ -52,62 +53,39 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     public TextMeshProUGUI myAnswerEffect;
     public TextMeshProUGUI ohterAnswerEffect;
 
-    [Header("ResultPanel")]
-    public GameObject ResultPanel;          //결과창
-    public TextMeshProUGUI myNickTxt;       //내 닉네임 
-    public TextMeshProUGUI otherNickTxt;    //상대 닉네임
-    public TextMeshProUGUI myScoreTxt;      // 내 점수
-    public TextMeshProUGUI otherScoreTxt;   //상대 점수
-    public TextMeshProUGUI winOrLose;       //승리판정
-
-    public GameObject ok_Btn;                   //확인 버튼
-
-    private int score = 0;                          //점수 
 
     //타이머
     [Header("Timer")]
     public Image gageBar;
     float timer = 0.0f;
+    float curTimer = 0.0f;
 
-    //동기화를 위한 변수 선언
-    ExitGames.Client.Photon.Hashtable playerHash;
 
-    private void Awake()
+    protected override void Init()
     {
-        pv = GetComponent<PhotonView>();
+        base.Init();
 
-        //문제 테이블 적용
+        //문제 테이블 
         QuestionTableSet();
     }
-    private void OnEnable()
-    {
-       
-        GamePanel.SetActive(true);
-        ResultPanel.SetActive(false);
 
-  
+    public override void StartGame()
+    {
+        //게임 UI On
+        GamePanel.SetActive(true);
+
         //방장만    
         if (PhotonNetwork.IsMasterClient)
-        {        
+        {
             //문제들 셋팅하기 ..무슨문제를 낼지
             QuestionSet();
         }
 
 
         //게임 로직 시작
-        StartCoroutine(GameStart());
+        StartCoroutine(Game_Co());
     }
 
-    private void Update()
-    {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            if (timer >= 0)
-                timer -= Time.deltaTime;
-        }
-        gageBar.fillAmount = timer / 10.0f;
-
-    }
 
     void QuestionTableSet() //문제 테이블 셋팅하기
     {
@@ -121,7 +99,7 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         questionList.Add(new KeyValuePair<string, OX>("새는 뒤로도 날 수 있다.", OX.O));
     }
 
-    public void QuestionSet()//방장만 무슨문제 출제할지 
+    void QuestionSet()//방장만 무슨문제 출제할지 
     {
         List<int> temp = new List<int>();
         while (questionNum.Count < 5)
@@ -137,17 +115,15 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
     }
 
-    IEnumerator GameStart()
+    IEnumerator Game_Co()
     {
         questionTxt.text = "OX 문제입니다.";
+        myscore.text = "내 점수 : 0";
         yield return new WaitForSeconds(1.0f);
 
         while (step < 5)
-        {
-            if (PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("OXWinCount"))
-                myscore.text = "내 점수 : " + (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"];
-            else
-                myscore.text = "내 점수 : 0";
+        {        
+           
 
             yield return new WaitForSeconds(1.0f);      
             //문제 내기 방장만
@@ -158,12 +134,13 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
 
          
             yield return new WaitForSeconds(0.5f);
-            timer = 10.0f;
+           
 
             //모든 플레이어가 결정할때까지 대기 //또는 시간이 다지나면
             //플레이어가 선택한것 보여주기
             choose = false;
-            while (timer >= 0) //타이머 돌때까지 루프
+            bIng = true;
+            while (bIng) //타이머 돌때까지 루프
             {
                 yield return null;
 
@@ -184,19 +161,26 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             //결과 보여주기
             OnCheckOX(); //OX 맞춘거 카운터       
             yield return new WaitForSeconds(2.0f);
-            questionTxt.text = "다음문제";
+
+            if (step.Equals(4))          
+               questionTxt.text = "게임 종료";            
+            else if (step.Equals(3))
+                questionTxt.text = "마지막 문제";
+            else
+                questionTxt.text = "다음 문제";
 
             //UI 및 값 초기화
-            yield return new WaitForSeconds(2.0f);
+            yield return new WaitForSeconds(1.5f);
             ResetUI();
+            step++; //다음 문제
         }
 
-        questionTxt.text = "게임 종료";
-
         //모든 문제 완료시 결과 보여주고
-        //다시 메인 로비로
-        GameEnd();
-        yield return null;
+        //최종결과 창
+        InGame.Inst.ShowResult();
+        //게임 UI Off
+        GamePanel.SetActive(false);
+
     }
 
     [PunRPC]
@@ -206,6 +190,22 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         currQuestion = num;
         O_Btn.SetActive(true);
         X_Btn.SetActive(true);
+    
+       StartCoroutine(Timer_Update());
+
+    }
+    IEnumerator Timer_Update()
+    {
+        timer = 5.0f; //결국 방장만 적용됨
+        while (timer >= 0)
+        {
+            yield return null;
+            timer -= Time.deltaTime;
+            gageBar.fillAmount = timer / 10.0f;
+        }
+
+        bIng = false;
+
     }
 
 
@@ -335,12 +335,15 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             //각자 정답인 사람이 각자클라이언트에서 업데이트 해준다.
             playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
 
-            if (playerHash.ContainsKey("OXWinCount"))
-                playerHash["OXWinCount"] = (int)playerHash["OXWinCount"] + 1;
+            if (playerHash.ContainsKey("score"))
+                playerHash["score"] = (int)playerHash["score"] + 1;
             else
-                playerHash.Add("OXWinCount", 1);
+                playerHash.Add("score", 1);
 
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+            score++;
+            myscore.text = "내 점수 : " + score.ToString();
+
         }
         else
         {
@@ -363,9 +366,8 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
     }
 
     void ResetUI()//한문제 끝나면 다시 원상복구
-    {
-        step++;
-
+    {   
+        //UI 리셋
         ohterAnswerEffect.gameObject.SetActive(false);
         myAnswerEffect.gameObject.SetActive(false); 
 
@@ -380,57 +382,9 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
         questionTxt.gameObject.SetActive(true);
     }
 
-    void GameEnd()//모든 문제 끝나고 결과창 업데이트
-    {
-        ResultPanel.SetActive(true);
-        GamePanel.SetActive(false);
-
-        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
-        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
-
-        int myscore = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("OXWinCount") ? (int)PhotonNetwork.LocalPlayer.CustomProperties["OXWinCount"] : 0;
-        int otherscore = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("OXWinCount") ? (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["OXWinCount"] : 0;
 
 
-        myScoreTxt.text = myscore.ToString();
-        otherScoreTxt.text = otherscore.ToString();
-
-        //승리 판정하기
-        if (myscore == otherscore)
-        {
-            winOrLose.text = "무승부";
-            winOrLose.color = Color.green;
-        }
-        else if (myscore > otherscore)
-        {
-            winOrLose.text = "승리";
-            winOrLose.color = Color.blue;
-            //D
-            InGame.Inst.WinGame();  //본 게임메니저에서 승리 카운트 해주기
-        }
-        else if (myscore < otherscore)
-        {
-            winOrLose.text = "패배";
-            winOrLose.color = Color.red;
-        }
-
-        
-        ok_Btn.SetActive(true);
-    }
-
-    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
-    {
-        //미니게임 종료
-        ok_Btn.SetActive(false);
-        ResultPanel.SetActive(false);
-        this.gameObject.SetActive(false);
-
-        //화면 갱신해주기
-        InGame.Inst.SetLobby();
-    }
-
-
-    //PlayerProperties들이 업데이트 된다면
+    //PlayerProperties들이 업데이트 된다면 //여기서 상대방 선택 체크
     public override void OnPlayerPropertiesUpdate(Player targetPlayer
                      , ExitGames.Client.Photon.Hashtable changedProps)
     {
@@ -441,24 +395,11 @@ public class OXGame : MonoBehaviourPunCallbacks, IPunObservable
             {
                 Debug.Log("선택");
                 otherChoose = (OX)changedProps["ChooseOX"];
+
             }
         }
     }
 
-
-    //타이머 동기화를 위한
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-        if(stream.IsWriting)
-        {
-            stream.SendNext(timer);
-        }
-        else
-        {
-            timer = (float)stream.ReceiveNext();
-        }
-     
-    }
 
 
 }
