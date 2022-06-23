@@ -108,10 +108,9 @@ public class FallingFruitGame : Game
         
 
         InGame.Inst.ShowResult();
-
         GamePanel.SetActive(false);
 
-
+        StopAllCoroutines();
     }
 
     IEnumerator SpawnFruits_Update()

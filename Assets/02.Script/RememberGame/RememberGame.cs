@@ -7,7 +7,7 @@ using Photon.Pun;
 using Photon.Realtime;
 
 
-public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
+public class RememberGame : Game, IPunObservable
 {
     //화살표 이미지   0 : left , 1 : right
     public Sprite[] arrowSprite;
@@ -17,7 +17,7 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
 
     //레벨별 이미지 갯수
     int[] levelCount = { 3, 4, 5, 6 };
-    float[] leveltimer = { 1.0f, 1.3f, 1.5f };
+    float[] leveltimer = { 1.0f, 1.2f, 1.2f,1.4f };
     int count = 0;
 
     //레벨별 그룹
@@ -36,7 +36,7 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
     //맞힌갯수 저장변수
     int answerCount = 0;
 
-    //체크하는 큐
+    //체크하는 큐//입력한 
     Queue<int> check = new Queue<int>();
 
     public GameObject timerObj;
@@ -48,142 +48,97 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
     Coroutine currCo;
 
     public TextMeshProUGUI infoText;
-
     public GameObject GamePanel;          //게임 패널
-    [Header("ResultPanel")]
-    public GameObject ResultPanel;          //결과창
+    //캐릭터
+    PlayerCharacter myPlayer;
 
-    public TextMeshProUGUI myNickTxt;       //내 닉네임 
-    public TextMeshProUGUI otherNickTxt;    //상대 닉네임
-    public TextMeshProUGUI myScoreTxt;      // 내 점수
-    public TextMeshProUGUI otherScoreTxt;   //상대 점수
-    public TextMeshProUGUI winOrLose;       //승리판정
-
-    public GameObject ok_Btn;                   //확인 버튼
-
-    //동기화를 위한 변수 선언
-    ExitGames.Client.Photon.Hashtable playerHash;
-
-    bool allEnd = false;
-
-    private void Awake()
+    protected override void Init()
     {
+        base.Init();
+
         for (int i = 0; i < levelGroup.Length; i++)
         {
             imgs.Add(levelGroup[i].GetComponentsInChildren<Image>());
         }
-    }
-
-    public override void OnEnable()
-    {
-        level = 0;
-        check.Clear();
-        timer = 15.0f;
-
-
-        Button LeftButton = GameObject.Find("LeftButton").GetComponent<Button>();
-        LeftButton.onClick.AddListener(() => { SelMyArrow(0); });
-
-        GameObject.Find("RightButton").GetComponent<Button>().onClick.AddListener(() => { SelMyArrow(1); });
-
-        StartCoroutine(GameStart());
-    }
-
-
-   
-
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-            SelMyArrow(0);
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-            SelMyArrow(1);
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            if (timer >= 0)
-                timer -= Time.deltaTime;
-        }
-
-        timerbar.fillAmount = timer / 60.0f;
-
-       
-    }
-
-
-    void ArrowSetting()
-    {
-        levelGroup[level].SetActive(true);
-        //무작위 선택을 위해
-        int rand = 0;
-        for (int i = 0; i < imgs[level].Length; i++)
-        {
-            rand = Random.Range(0, 2);
-            imgs[level][i].sprite = arrowSprite[rand];
-            answer[i] = rand;
-        }
-
-
-        if (currCo != null)
-            StopCoroutine(currCo);
-
-        currCo = StartCoroutine(OffArrow(leveltimer[level]));
 
     }
 
-    IEnumerator OffArrow(float time)
+
+    
+
+    public override void StartGame()
     {
-        yield return new WaitForSeconds(time);
-        levelGroup[level].SetActive(false);
+        base.StartGame();
 
-        currCo = null;
-    }
+        //좌우 이동을 막는다
+        myPlayer = InGame.Inst.playerCharacters[0];
+        myPlayer.isMove = false;
 
+        //버튼 적용
+        Button LBT = GameObject.Find("LeftButton").GetComponent<Button>();
+        LBT.onClick.RemoveAllListeners();
+        LBT.onClick.AddListener(() => { SelMyArrow(0); });
 
-    IEnumerator GameStart()
-    {
+        Button RBT = GameObject.Find("RightButton").GetComponent<Button>();
+        RBT.onClick.RemoveAllListeners();
+        RBT.onClick.AddListener(() => { SelMyArrow(1); });
+
+        //게임 UI On
         GamePanel.SetActive(true);
+  
+        //게임 로직 시작
+        StartCoroutine(Game_Co());
+    }
+
+
+
+    IEnumerator Game_Co()
+    {
+        //초기화
+        level = 0;
+        answerCount = 0;
+        check.Clear();
+       
         timerObj.SetActive(false);
         infoText.gameObject.SetActive(true);
         infoText.text = "나오는 화살표 방향에 맞게\n순서대로 입력해주세요\n시간이 지나면 사라집니다.";
         yield return new WaitForSeconds(1.5f);
         infoText.gameObject.SetActive(false);
 
+        //화살표 셋팅
         ArrowSetting();
+    
         answerCountTxt.gameObject.SetActive(true);
         answerCountTxt.text = "정답 갯수 : 0";
 
-        //임시 15초 원래는 60초
+  
         timerObj.SetActive(true);
         timer = 15.0f;
         timerbar.fillAmount = timer / 60.0f;
+        //타이머 
+        StartCoroutine(Time_Update());
 
 
         //게임 로직
-        while (true)
-        {
-            //타임 오버
-            if (timer <= 0)
-                break;
-
+        while (timer > 0)
+        {      
             yield return null;
 
-            //체크하기
+            //체크하기 //입력받은 큐에들어있는 것을 확인하면서
             if (check.Count > 0)
             {
-                int RL = check.Dequeue();
-                mySetImg[mySelNum].gameObject.SetActive(true);
-                mySetImg[mySelNum].sprite = arrowSprite[RL];
+                int RL = check.Dequeue(); //앞에 입력한거 가져와서 
+                mySetImg[mySelNum].gameObject.SetActive(true); //내가 선택한 화살표 보여주기
+                mySetImg[mySelNum].sprite = arrowSprite[RL];    //이미지 적용
 
-                if (RL != answer[mySelNum])
+                
+                if (RL != answer[mySelNum]) //정답이면
                 {
                     OX.gameObject.SetActive(true);
                     OX.text = "X";
                     OX.color = Color.red;
+                    //판정시 잠시 대기
                     wait = true;
-
                     yield return new WaitForSeconds(0.5f);
                     wait = false;
                     OX.gameObject.SetActive(false);
@@ -199,6 +154,7 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
                         OX.gameObject.SetActive(true);
                         OX.text = "O";
                         OX.color = Color.blue;
+                        //판정시 잠시 대기
                         wait = true;
                         yield return new WaitForSeconds(0.5f);
                         wait = false;
@@ -215,20 +171,73 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
         MySetClear();
 
         answerCountTxt.text = "타임오버!!";
-
-
         yield return new WaitForSeconds(1.0f);
 
-
-
+        answerCountTxt.gameObject.SetActive(false);
         GamePanel.SetActive(false);
-        ResultPanel.SetActive(true);
-        GameEnd();
-
+        
+        InGame.Inst.ShowResult();
+        myPlayer.isMove = true;
     }
+
+
+    IEnumerator Time_Update()
+    {
+        while (timer >= 0)
+        {
+            yield return null;
+            timer -= Time.deltaTime;
+            timerbar.fillAmount = timer / 60.0f;
+        }
+    }
+
+
+    private void Update() //테스트를 위한
+    {
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+            SelMyArrow(0);
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            SelMyArrow(1);
+    }
+
+
+    void ArrowSetting() //레벨에 맞게 무작위 화살표 셋팅
+    {
+        levelGroup[level].SetActive(true);
+        //무작위 선택을 위해
+        int rand = 0;
+        //래벨에 따라 화살표 배치
+        for (int i = 0; i < imgs[level].Length; i++)
+        {
+            rand = Random.Range(0, 2);
+            imgs[level][i].sprite = arrowSprite[rand];
+            answer[i] = rand;
+        }
+
+
+        if (currCo != null) //만약 함수가 발동되기전에 이미 돌아가고 있으면 기존 함수멈춤 
+            StopCoroutine(currCo);
+
+        // 화살표 일정시간 뒤에 사라지게 하는 코루틴 함수
+        currCo = StartCoroutine(OffArrow(leveltimer[level]));
+
+        //큐 비우기
+        check.Clear();
+    }
+
+    IEnumerator OffArrow(float time)//일정시간 뒤에 화살표 안보이게
+    {
+        yield return new WaitForSeconds(time);
+        levelGroup[level].SetActive(false);
+
+        currCo = null;
+    }
+
 
     void SelMyArrow(int RL)
     {
+        //만약 선택한 횟수가 
         if (mySelNum == levelCount[level])
             return;
 
@@ -248,29 +257,31 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
 
     void FailRemember()
     {
+        //다음
         ArrowSetting();
         MySetClear();
 
-        //내 케릭터 틀린거 
+        //내 케릭터 틀린거 //뭐에 맞은것 처럼
         InGame.Inst.playerCharacters[0].SetHit();
-
-
         mySelNum = 0;
     }
 
     void SuccessRemember()
     {
-
         levelGroup[level].SetActive(false);
-        count++;
-        if (count == 5)
-        {
-            level++;
-            if (level > 2)
-                level = 2;
 
+        //다음 단계로 갈수 있으면 카운트up
+        if (level < levelCount.Length - 1)
+            count++;
+
+        if (count == 5)//5개씩 맞추면
+        {
+            if (level < levelCount.Length)
+                level++;
+       
             count = 0;
         }
+
         answerCount++;
         answerCountTxt.text = "정답 갯수 : " + answerCount;
 
@@ -279,68 +290,21 @@ public class RememberGame : MonoBehaviourPunCallbacks, IPunObservable
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
 
         //점수
-        if (playerHash.ContainsKey("RememberCount"))
-            playerHash["RememberCount"] = answerCount;
+        if (playerHash.ContainsKey("score"))
+            playerHash["score"] = answerCount;
         else
-            playerHash.Add("RememberCount", answerCount);
+            playerHash.Add("score", answerCount);
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
-
+        //다음
         ArrowSetting();
         MySetClear();
 
         mySelNum = 0;
     }
 
-    void GameEnd()//모든 문제 끝나고 결과창 업데이트
-    {
-        ResultPanel.SetActive(true);
-        GamePanel.SetActive(false);
-
-        answerCountTxt.gameObject.SetActive(false);
-        myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
-        otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
-
-        int myscore = answerCount;
-        int otherscore = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("RememberCount") ? (int)PhotonNetwork.PlayerListOthers[0].CustomProperties["RememberCount"] : 0;
-
-
-        myScoreTxt.text = myscore.ToString();
-        otherScoreTxt.text = otherscore.ToString();
-
-        //승리 판정하기
-        if (myscore == otherscore)
-        {
-            winOrLose.text = "무승부";
-            winOrLose.color = Color.green;
-        }
-        else if (myscore > otherscore)
-        {
-            winOrLose.text = "승리";
-            winOrLose.color = Color.blue;
-            //D
-            InGame.Inst.WinGame();  //본 게임메니저에서 승리 카운트 해주기
-        }
-        else if (myscore < otherscore)
-        {
-            winOrLose.text = "패배";
-            winOrLose.color = Color.red;
-        }
-
-        ok_Btn.SetActive(true);
-    }
-
-    public void OnOkBtn()   //게임 종료후 확인버튼 누르면
-    {
-        //미니게임 종료
-        ok_Btn.SetActive(false);
-        ResultPanel.SetActive(false);
-        this.gameObject.SetActive(false);
-
-        //화면 갱신해주기
-        InGame.Inst.SetLobby();
-    }
+   
 
     //타이머 동기화를 위한
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

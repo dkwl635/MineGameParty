@@ -2,6 +2,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -49,6 +50,7 @@ public class InGame : MonoBehaviourPunCallbacks
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public Game[] MiniGame;       //미니게임이 담겨있는
 
+    TalkBox talkBox;
 
     //캐릭터
     public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
@@ -67,6 +69,8 @@ public class InGame : MonoBehaviourPunCallbacks
 
         if (playerHash == null)
             playerHash = new ExitGames.Client.Photon.Hashtable();
+
+        talkBox = GetComponent<TalkBox>();
 
         GameRoll.GameCount = (int)GameType.Last;
     }
@@ -90,9 +94,12 @@ public class InGame : MonoBehaviourPunCallbacks
         playerHash.Add("ready", false);
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
-    
+
     }
-    
+
+
+
+
     void InitPanel() //입장시 패널 설정
     {
         //사운드 설정하는 버튼 함수 연결
@@ -226,6 +233,7 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         Debug.Log("ImReady");
@@ -251,6 +259,14 @@ void CreatePlayer() //캐릭터 만들기
         }
     }
 
+    void CheckReady()
+    {
+        if (!PhotonNetwork.LocalPlayer.IsMasterClient)
+            return;
+        
+        StartBtn.gameObject.SetActive((bool)PhotonNetwork.PlayerListOthers[0].CustomProperties["ready"]); 
+    }
+
     public void GameStartBtn() //반장만 누를수 있는버튼
     {
         //모든 플레이어에게 전달해 게임을진행한다.
@@ -260,10 +276,14 @@ void CreatePlayer() //캐릭터 만들기
     [PunRPC]
     public void GameSelStart()
     {
-        Debug.Log("게임 시작");
+        //채팅창 클리어
+        talkBox.ClearText();
 
+        //준비완료 한거 준비하기로 초기화
+        readyTxt.text = "준비하기";
         isReady = false;
-        readyTxt.text = "준비";
+
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         roomCanavas.SetActive(false);
@@ -292,7 +312,7 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, curGame);
     }
 
     [PunRPC]
@@ -369,6 +389,7 @@ void CreatePlayer() //캐릭터 만들기
 
         SetWinCount();
 
+        CheckReady();
     }
 #endregion
 

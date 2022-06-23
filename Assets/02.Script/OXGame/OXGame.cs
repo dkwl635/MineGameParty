@@ -123,8 +123,7 @@ public class OXGame : Game
 
         while (step < 5)
         {        
-           
-
+          
             yield return new WaitForSeconds(1.0f);      
             //문제 내기 방장만
             if (PhotonNetwork.IsMasterClient)

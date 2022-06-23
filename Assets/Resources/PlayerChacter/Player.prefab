@@ -153,7 +153,6 @@ MonoBehaviour:
   nickNameTxt: {fileID: 4567891877612675418}
   starImg: {fileID: 8471659390411471570}
   ready: {fileID: 2361553022116839204}
-  talkBox: {fileID: 0}
   h: 0
   velocity: {x: 0, y: 0}
   currPos: {x: 0, y: 0, z: 0}
