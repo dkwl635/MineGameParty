@@ -28,11 +28,6 @@ public class RoomItem : MonoBehaviour
         });
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
 
     public void DispRoomData(bool a_IsOpen)
     {
@@ -48,8 +43,12 @@ public class RoomItem : MonoBehaviour
         }
 
         textRoomName.text = roomName;
-        textConnectInfo.text = "(" + connectPlayer.ToString() + "/"
-                                        + maxPlayer.ToString() + ")";
+
+        if (connectPlayer == maxPlayer)
+            textConnectInfo.text = "Ç®¹æ";
+        else
+            textConnectInfo.text = "(" + connectPlayer.ToString() + "/"
+                                            + maxPlayer.ToString() + ")";
 
     } //public void DispRoomData(bool a_IsOpen)
 }

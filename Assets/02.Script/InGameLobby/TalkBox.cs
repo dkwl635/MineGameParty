@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
+using Photon.Realtime;
 
-public class TalkBox : MonoBehaviour
+public class TalkBox : MonoBehaviourPunCallbacks
 {
     PhotonView pv;
 
@@ -31,7 +32,7 @@ public class TalkBox : MonoBehaviour
         textInfo = "";
 
     }
-   
+
     void SendMsg()
     {
         string str = inputField.text;
@@ -43,15 +44,24 @@ public class TalkBox : MonoBehaviour
         inputField.text = "";
     }
 
+     void SendMsg(string msg)
+    {
+        string str = inputField.text;
+        if (string.IsNullOrEmpty(str))
+            return;
+
+        pv.RPC("SendMsg", RpcTarget.All, str, PhotonNetwork.LocalPlayer.NickName);
+
+    }
 
 
     [PunRPC]
     void SendMsg(string str, string nick)
     {
         if (nick.Equals(PhotonNetwork.LocalPlayer.NickName))
-            textInfo += "<color=blue>" + nick + "</color>" + " : ";
+            textInfo += "<color=" + InGame.Inst.myNickNameColor.ToString() + ">" + nick + "</color>" + " : ";
         else
-            textInfo += "<color=red>" + nick + "</color>" + " : ";
+            textInfo += "<color=" + InGame.Inst.otherNickNameColor.ToString() + ">" + nick + "</color>" + " : ";
 
         textInfo += str;
         textInfo += "\n";
@@ -59,5 +69,21 @@ public class TalkBox : MonoBehaviour
         text.text = textInfo;
     }
 
+    public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
+    {
+        string str = "<color=blue>" + newPlayer.NickName + "님이 입장하였습니다." + "</color>";
+        textInfo += str;
+        textInfo += "\n";
 
+        text.text = textInfo;
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer) //만약 다른 플레이어가 나간다면 
+    {
+        string str = "<color=red>" + otherPlayer.NickName + "님이 퇴장하였습니다." + "</color>";
+        textInfo += str;
+        textInfo += "\n";
+
+        text.text = textInfo;
+    }
 }

@@ -33,7 +33,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
- 
+        
+
         PhotonNetwork.SendRate = 60;            
         PhotonNetwork.SerializationRate = 30;
 
@@ -55,15 +56,22 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         string userNick = PlayerPrefs.GetString("USER_Nick");
 
         //저장된 닉네임이 없다면
-        if (string.IsNullOrEmpty(userNick))
-        {
-            //랜덤
-            userNick = "USER_" + Random.Range(0, 999).ToString("000");
-        }
-
+        if (string.IsNullOrEmpty(userNick))  
+            userNick = "";
+        
         return userNick;
     }
 
+    bool CheckNickName()//닉네임이 비어있는지 확인
+    {
+        string nick = userNick.text;
+
+        //저장된 닉네임이 없다면
+        if (string.IsNullOrEmpty(nick))
+            return false;
+
+        return true;
+    }
 
 #if UNITY_EDITOR && !(UNITY_IPHONE || UNITY_ANDROID)
     void OnGUI()    //현재 접속상태를 보기 위하여
@@ -92,7 +100,13 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     //랜덤 방 버튼 클릭 시 호출되는 함수
     public void ClickJoinRandomRoom()         //3번 방 입장 요청 버튼 누름
     {
+        //버튼 사운드 효과
         SoundMgr.Inst.PlayEffect(buttonSound);
+
+        if (!CheckNickName()) //닉네임 확인
+            return;
+
+       
         //로컬 플레이어의 이름을 설정
         PhotonNetwork.LocalPlayer.NickName = userNick.text;   
         //플레이어 이름을 저장
@@ -124,7 +138,11 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public void ClickCreateRoom()
     {
+        //버튼 사운드 효과
         SoundMgr.Inst.PlayEffect(buttonSound);
+
+        if (!CheckNickName()) //닉네임 확인
+            return;
 
         string _roomName = roomName.text;
         //룸 이름이 없거나 Null일 경우 룸 이름 지정
@@ -219,6 +237,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         //룸 씬으로 이동하는 코루틴 실행
         StartCoroutine(LoadGame());
     }
+
 
     //룸 씬으로 이동하는 코루틴 함수
     IEnumerator LoadGame()      

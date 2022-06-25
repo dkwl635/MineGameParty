@@ -17,7 +17,6 @@ public class LobbyMgr : MonoBehaviour
         SoundMgr.Inst.PlayBGM(LobbyBGM);
         //설정버튼 셋팅
         soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
-
     }
 
 

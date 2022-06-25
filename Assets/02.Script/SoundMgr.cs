@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class SoundMgr : MonoBehaviour
 {
     //╫л╠шео фпео
@@ -30,6 +31,7 @@ public class SoundMgr : MonoBehaviour
     public GameObject SoundCtrlBox;
 
 
+
     private void Awake()
     {
         if (Inst == null)
@@ -53,8 +55,15 @@ public class SoundMgr : MonoBehaviour
             effectSource.Enqueue(newAudioSource);
         }
 
-        SoundInit();
+        SoundInit();      
+
     }
+
+    private void Update()
+    {
+        
+    }
+
 
     void SoundInit()
     {
@@ -78,8 +87,6 @@ public class SoundMgr : MonoBehaviour
 
 
         bgmSource.Play();
-
-
     }
 
     public void PlayEffect(string EffectName)

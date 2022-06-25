@@ -21,16 +21,20 @@ public class InGame : MonoBehaviourPunCallbacks
 {
     public static InGame Inst; //싱글턴을 위한
 
+    PhotonView pv;  //포톤 동기화를 위한 포톤뷰
+    
+
     //캐릭터 스폰 위치
     public GameObject spawnPos; //게임입장시 중심 스폰위치
-    PhotonView pv;  //포톤 동기화를 위한 포톤뷰
+
+
 
     //동기화를 위한 변수 선언
     ExitGames.Client.Photon.Hashtable playerHash; 
-  
    
     [Header("UI")]
     public GameObject roomCanavas;  //게임 방 정보 창   
+    public GameObject configAndLobbyBtn;  //설정 버튼 나가기버튼
     public Button readyBtn;                 //레디 버튼    ... 반장은 없는 버튼
     public Text readyTxt;                     //레디 버튼 (준비완료, 준비) 를 나타낼 텍스트
     public Button StartBtn;                  //시작 버튼 .... 반장만 나올 버튼
@@ -51,6 +55,10 @@ public class InGame : MonoBehaviourPunCallbacks
     public Game[] MiniGame;       //미니게임이 담겨있는
 
     TalkBox talkBox;
+
+    
+    public  MyColor myNickNameColor = MyColor.black;
+    public  MyColor otherNickNameColor = MyColor.black;
 
     //캐릭터
     public PlayerCharacter[] playerCharacters = new PlayerCharacter[2];
@@ -93,8 +101,6 @@ public class InGame : MonoBehaviourPunCallbacks
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-
     }
 
 
@@ -109,7 +115,7 @@ public class InGame : MonoBehaviourPunCallbacks
         StartBtn.gameObject.SetActive(false);
 
         //내닉네임 적용
-        myNickName.text = PhotonNetwork.LocalPlayer.NickName;
+        myNickName.text = "<color=" + myNickNameColor.ToString() + ">" + PhotonNetwork.LocalPlayer.NickName + "</color>"; 
 
 
         if (PhotonNetwork.LocalPlayer.IsMasterClient) //방장일경우
@@ -162,8 +168,7 @@ void CreatePlayer() //캐릭터 만들기
         //내 케릭터만 떨어지는 모습을 볼수 있다.
        // PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.CharName.ToString(), a_HPos, Quaternion.identity, 0);
         PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);
-        
-
+ 
     }
 
 
@@ -193,9 +198,12 @@ void CreatePlayer() //캐릭터 만들기
     }
     public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
     {
-        otherNickName.text = newPlayer.NickName;
+        otherNickName.text = "<color="+ otherNickNameColor.ToString() +">" + newPlayer.NickName + "</color>";
         otherWinCountTxt.text = "";
+
+        
     }
+
     public override void OnPlayerLeftRoom(Player otherPlayer) //만약 다른 플레이어가 나간다면 
     {
         otherNickName.text = "플레이어 기달리는 중...";
@@ -212,8 +220,6 @@ void CreatePlayer() //캐릭터 만들기
             roomMark.transform.SetParent(myNickName.transform, false);
 
     }
-
-
 
 
     #endregion
@@ -287,7 +293,9 @@ void CreatePlayer() //캐릭터 만들기
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         roomCanavas.SetActive(false);
-       
+        configAndLobbyBtn.SetActive(false);
+
+
         GameRoll.roller.SetActive(true);
     
         //두번째 플레이어 등록
@@ -318,7 +326,7 @@ void CreatePlayer() //캐릭터 만들기
     [PunRPC]
     void StartMiniGame(int idx)//정해진 미니게임 활성화 하기
     {     
-        roomCanavas.SetActive(false);
+       
         MiniGame[idx].StartGame();
        
     }
@@ -378,7 +386,8 @@ void CreatePlayer() //캐릭터 만들기
     public void SetLobby()// 로비 창 새로고침
     {
         roomCanavas.SetActive(true);
-       
+        configAndLobbyBtn.SetActive(true);
+
         isReady = false;
         StartBtn.gameObject.SetActive(false);
 
@@ -391,6 +400,18 @@ void CreatePlayer() //캐릭터 만들기
 
         CheckReady();
     }
+
+  public  void ChangeNickColor()
+    {
+        myNickName.text = "<color=" + myNickNameColor.ToString() + ">" + PhotonNetwork.LocalPlayer.NickName + "</color>";
+        playerCharacters[0].ChangeNickName(myNickNameColor);
+
+        if (PhotonNetwork.PlayerListOthers.Length > 0)    
+            otherNickName.text = "<color=" + otherNickNameColor.ToString() + ">" + PhotonNetwork.PlayerListOthers[0].NickName + "</color>";        
+        
+
+    }
+
 #endregion
 
    

@@ -86,8 +86,11 @@ public class StairGame : Game
         //캐릭터 이동
         spawnPos = spawnPosObj.transform.position + Vector3.up;
         spawnPos.z = myPlayer.transform.position.z;
-        myPlayer.transform.position = spawnPos;   
-       
+        myPlayer.transform.position = spawnPos;
+
+        gageBar.fillAmount = 1.0f;
+
+
         GamePanel.SetActive(true);
         StartCoroutine(Game_Co());
     }
@@ -251,7 +254,7 @@ public class StairGame : Game
         if(hit)
         {
             Debug.Log("계단");
-            nextTimer -= 0.1f;
+            nextTimer -= 0.01f;
             if (nextTimer <= 0.5f)
                 nextTimer = 0.5f;
 

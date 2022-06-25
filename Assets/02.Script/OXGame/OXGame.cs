@@ -71,6 +71,8 @@ public class OXGame : Game
 
     public override void StartGame()
     {
+        base.StartGame();
+
         //게임 UI On
         GamePanel.SetActive(true);
 
@@ -80,6 +82,13 @@ public class OXGame : Game
             //문제들 셋팅하기 ..무슨문제를 낼지
             QuestionSet();
         }
+
+        //초기화
+        currQuestion = 0;
+        step = 0;
+        myChoose = OX.None;
+        otherChoose = OX.None;
+
 
 
         //게임 로직 시작
@@ -195,12 +204,12 @@ public class OXGame : Game
     }
     IEnumerator Timer_Update()
     {
-        timer = 5.0f; //결국 방장만 적용됨
+        timer = 5.0f; 
         while (timer >= 0)
         {
             yield return null;
             timer -= Time.deltaTime;
-            gageBar.fillAmount = timer / 10.0f;
+            gageBar.fillAmount = timer / 5.0f;
         }
 
         bIng = false;

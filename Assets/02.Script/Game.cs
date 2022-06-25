@@ -16,6 +16,8 @@ public class Game : MonoBehaviourPunCallbacks
     //Á¡¼ö 
     protected int score = 0;
 
+    public delegate void Sound(string name);
+
     private void Awake()
     {
         Init();

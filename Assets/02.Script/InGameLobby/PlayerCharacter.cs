@@ -46,27 +46,28 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         {
             animator.SetInteger("Char", (int)UserData.CharName);
 
-            FindObjectOfType<CharController>().player = this;          
-            nickNameTxt.color = Color.blue;
+            FindObjectOfType<CharController>().player = this;              
             //내캐릭이 먼저 보이게하게
             transform.position -= Vector3.forward;
             
             this.tag = "Player";
-
+            //닉네임 색깔
+            nickNameTxt.text = "<color=" + InGame.Inst.myNickNameColor.ToString() + ">" + pv.Owner.NickName + "</color>";
             InGame.Inst.playerCharacters[0] = this;
 
         }
         else
         {
             //원격  동기화는 적용안함
-            rigidbody.gravityScale = 0.0f;          
-            nickNameTxt.color = Color.red;
-
+            rigidbody.gravityScale = 0.0f;
+            //닉네임 색깔
+            nickNameTxt.text = "<color=" + InGame.Inst.otherNickNameColor.ToString() + ">" + pv.Owner.NickName + "</color>";
+            InGame.Inst.playerCharacters[1] = this;
             this.tag = "OtherPlayer";
 
         }
 
-        nickNameTxt.text = pv.Owner.NickName;
+    
 
         if (!pv.Owner.IsMasterClient)
             starImg.SetActive(false);
@@ -82,10 +83,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         if (pv.IsMine) //내가 조종할때
         {
-            //currPos = transform.position;
-            //currPos.z = -1;
-            //transform.position = currPos;
-
+           
             if (!isMove)
                 return;
 
@@ -135,6 +133,12 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
             animator.SetBool("move", true);
     }
 
+    public void ChangeNickName(MyColor color)
+    {
+        nickNameTxt.text = "<color=" + color.ToString() + ">" + pv.Owner.NickName + "</color>";      
+    }
+
+
     //원격동기화
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
@@ -143,11 +147,13 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         {                    
             stream.SendNext(spriteRenderer.flipX ? 1 : 0);
             stream.SendNext(animator.GetInteger("Char"));
+            stream.SendNext(nickNameTxt.text);
         }
         else //원격 플레이어의 위치 정보 수신
         {                     
             spriteRenderer.flipX = ((int)stream.ReceiveNext()) == 1 ? true : false;
             animator.SetInteger("Char", (int)stream.ReceiveNext());
+            nickNameTxt.text = (string)stream.ReceiveNext();
         }
     }
 
