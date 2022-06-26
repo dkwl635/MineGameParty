@@ -100,6 +100,7 @@ public class InGame : MonoBehaviourPunCallbacks
         //플레이어 정보 SetCustomProperties 시키기
         playerHash.Add("winCount", 0);
         playerHash.Add("ready", false);
+
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
     }
 
@@ -191,10 +192,10 @@ void CreatePlayer() //캐릭터 만들기
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.JoinLobby();
 
- 
         //씬 전환해주기
-        SceneManager.LoadScene("ServerLobby");
-       
+        //SceneManager.LoadScene("ServerLobby");
+        LoadMgr.Inst.LoadScene("ServerLobby");
+
     }
     public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
     {
@@ -217,7 +218,7 @@ void CreatePlayer() //캐릭터 만들기
 
         //방장 마크 옮기기
         playerCharacters[0].starImg.SetActive(true);
-            roomMark.transform.SetParent(myNickName.transform, false);
+        roomMark.transform.SetParent(myNickName.transform, false);
 
     }
 

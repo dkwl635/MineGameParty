@@ -32,12 +32,23 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
 
     private void Awake()
-    {
-        
-
+    {    
         PhotonNetwork.SendRate = 60;            
         PhotonNetwork.SerializationRate = 30;
 
+        //if (!PhotonNetwork.IsConnected)
+        //{
+        //    //1번, 포톤 클라우드에 접속
+        //    PhotonNetwork.ConnectUsingSettings();
+        //    //포톤 서버에 접속시도(지역 서버 접속) -> AppID 사용자 인증 
+        //    //-> 로비 입장 진행
+        //}
+
+        //userNick.text = GetUserNick();
+    }
+
+    private void Start()
+    {
         if (!PhotonNetwork.IsConnected)
         {
             //1번, 포톤 클라우드에 접속
@@ -45,9 +56,10 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
             //포톤 서버에 접속시도(지역 서버 접속) -> AppID 사용자 인증 
             //-> 로비 입장 진행
         }
+        else if (!PhotonNetwork.InLobby)
+            OnJoinedLobby();
 
         userNick.text = GetUserNick();
-
     }
 
     //저장된 닉네임 가져오기
@@ -235,24 +247,11 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     {
         Debug.Log("방 참가 완료");
         //룸 씬으로 이동하는 코루틴 실행
-        StartCoroutine(LoadGame());
+        LoadMgr.Inst.LoadScene("InGame");
     }
 
 
-    //룸 씬으로 이동하는 코루틴 함수
-    IEnumerator LoadGame()      
-    {
-        //씬을 이동하는 동안 포톤 클라우드 서버로부터 네트워크 메시지 수신 중단
-        PhotonNetwork.IsMessageQueueRunning = false;
-        //백그라운드로 씬 로딩
-
-        Time.timeScale = 1.0f;  //게임에 들어갈 때는 원래 속도로...
-
-        AsyncOperation ao = SceneManager.LoadSceneAsync("InGame");
-
-        yield return ao;
-    }
-
+    
 
 
 
