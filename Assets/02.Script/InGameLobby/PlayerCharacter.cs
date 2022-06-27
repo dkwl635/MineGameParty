@@ -32,10 +32,8 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         rigidbody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-
-        pv = GetComponent<PhotonView>();
-       
-    }
+        pv = GetComponent<PhotonView>();     
+     }
 
     // Start is called before the first frame update
     void Start()

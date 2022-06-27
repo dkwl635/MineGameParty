@@ -80,6 +80,9 @@ public class InGame : MonoBehaviourPunCallbacks
 
         talkBox = GetComponent<TalkBox>();
 
+        if (PhotonNetwork.PlayerListOthers.Length > 0)
+            otherNickNameColor = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("NickColor") ? (MyColor)((int)PhotonNetwork.PlayerListOthers[0].CustomProperties["NickColor"]) : MyColor.black;
+
         GameRoll.GameCount = (int)GameType.Last;
     }
 
@@ -102,6 +105,8 @@ public class InGame : MonoBehaviourPunCallbacks
         playerHash.Add("ready", false);
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
+        PhotonNetwork.CurrentRoom.IsVisible = true;
     }
 
 
@@ -194,6 +199,7 @@ void CreatePlayer() //캐릭터 만들기
 
         //씬 전환해주기
         //SceneManager.LoadScene("ServerLobby");
+
         LoadMgr.Inst.LoadScene("ServerLobby");
 
     }

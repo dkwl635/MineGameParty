@@ -102,6 +102,13 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinLobby();
     }
 
+    //서버 접속 실패
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.Log("서버 접속 끊김");
+    }
+
+
     //PhotonNetwork.JoinLobby() 성공시 호출되는 로비 접속 콜백함수
     public override void OnJoinedLobby()
     {   
@@ -138,7 +145,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         string _roomName = "ROOM_" + Random.Range(0, 999).ToString("000");
         RoomOptions roomOptions = new RoomOptions();
         roomOptions.IsOpen = true;     //입장 가능 여부
-        roomOptions.IsVisible = true;  //로비에서 룸의 노출 여부
+        roomOptions.IsVisible = false;  //로비에서 룸의 노출 여부
         roomOptions.MaxPlayers = 2;   //룸에 입장할 수 있는 최대 접속자 수
 
         //지정한 조건에 맞는 룸 생성 함수
@@ -228,6 +235,9 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
         for (int i = 0; i < myList.Count; i++)
         {
+            if (!myList[i].IsVisible)
+                continue;
+
             GameObject room = Instantiate(roomItem) as GameObject;
             room.transform.SetParent(scrollContents.transform, false);
 
@@ -239,6 +249,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
             //텍스트 정보를 표시
             roomData.DispRoomData(myList[i].IsOpen);
+
             }
     }
 

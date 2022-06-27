@@ -7,6 +7,7 @@ public class Fruits : MonoBehaviourPunCallbacks
 {
     PhotonView pv;
 
+   
     PlayerCharacter player;
     float dis = 10000.0f;
     float temp = 0;
@@ -20,6 +21,8 @@ public class Fruits : MonoBehaviourPunCallbacks
     // Update is called once per frame
     void Update()
     {
+      
+
         transform.Translate(Vector2.down * Time.deltaTime);
 
         //동시 충돌 알아보기

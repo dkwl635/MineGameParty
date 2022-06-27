@@ -27,22 +27,7 @@ public class LoadMgr : MonoBehaviour
             Destroy(this.gameObject);  
     }
 
-    private void Update()
-    {
-        if (!LoadCanvas.activeSelf)
-            return;
-
-        timer += Time.deltaTime;
-        if(timer > 0.3f)
-        {
-            loadText.text += ".";
-            if (loadText.text == "Loading.....")
-                loadText.text = "Loading";
-
-            timer = 0.0f;
-        }
-
-    }
+  
 
     public void LoadScene(string sceneName)
     {

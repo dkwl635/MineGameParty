@@ -25,23 +25,24 @@ public class FallingFruitGame : Game
     public static FallingFruitGame Inst;    //싱글턴 패턴을 위한
     public PlayerCharacter[] playerObj;   //과일들의 충돌캐릭터들의 거리 계산을 위한 플레이어들 캐릭터변수
 
-
-
     public GameObject fruitsSpanwPos; //과일의 중심스폰위치
+    
+
 
     //과일 먹고 나올 이펙트
     public GameObject collectObj;   //과일을 먹고 나올 이펙트 프리팹
+    Transform collectObjTr;
+    Queue<GameObject> collectQu = new Queue<GameObject>();
 
     [Header("UI")]
     public GameObject GamePanel;
     public TextMeshProUGUI scoreTxt;    //점수 
     public TextMeshProUGUI CountTxt;   //남은시간
-    private int score = 0;                          //점수 
+                      //점수 
 
     
     float timer = 0.0f;                 //게임시간   
     float nextSpawnTime = 1.0f; //과일 스폰 주기
-
     bool gameStart = false;  //게임 상태 bool 변수
 
     protected override void Init()
@@ -49,6 +50,17 @@ public class FallingFruitGame : Game
         base.Init();
 
         Inst = this;
+
+        collectObjTr = new GameObject("CollectObjPool").transform;
+        collectObjTr.SetParent(transform);
+
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject obj = Instantiate(collectObj, collectObjTr);
+            obj.SetActive(false);
+            collectQu.Enqueue(obj);
+        }
+
     }
 
 
@@ -186,11 +198,27 @@ public class FallingFruitGame : Game
     }
 
     void SpawnCollect(Vector3 pos)//과일 먹을시 이펙트 나오게 하기  //추후 오브젝트 풀로 바꾸기
-    {       
-        GameObject collect = Instantiate(collectObj, pos, Quaternion.identity);
-        Destroy(collect, 0.5f);
+    {
+        GameObject collect;
+        if (collectQu.Count <= 0)
+            collect = Instantiate(collectObj, collectObjTr);
+        else
+            collect = collectQu.Dequeue();
+
+        collect.SetActive(true);
+        collect.transform.position = pos;
+
+        StartCoroutine(CollectActiveOff(collect));
     }
 
+    WaitForSeconds collectOffTime = new WaitForSeconds(0.3f);
+    IEnumerator CollectActiveOff(GameObject obj)
+    {
+        yield return collectOffTime;
+
+        obj.SetActive(false);
+        collectQu.Enqueue(obj);
+    }
 
 
 }

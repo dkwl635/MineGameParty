@@ -20,8 +20,7 @@ public class Game : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        Init();
-      
+        Init(); 
     }
 
     protected virtual void Init()

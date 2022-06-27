@@ -38,8 +38,9 @@ public class Palette : MonoBehaviourPunCallbacks
     IEnumerator FirstColor()
     {
         SetBtnFunc();
-
-        yield return new WaitForEndOfFrame();
+        
+        //yield return null;
+       yield return new WaitForEndOfFrame();
 
         if (PhotonNetwork.IsMasterClient)
             curColorNum = 0;
@@ -58,7 +59,7 @@ public class Palette : MonoBehaviourPunCallbacks
 
        
         ChangeColor(curColorNum);
-
+       
     }
 
 
@@ -109,8 +110,7 @@ public class Palette : MonoBehaviourPunCallbacks
 
     public override void OnPlayerPropertiesUpdate(Player targetPlayer
                      , ExitGames.Client.Photon.Hashtable changedProps)
-    {
-
+    { 
         if (targetPlayer != PhotonNetwork.LocalPlayer)
         {
             if (changedProps.ContainsKey("NickColor"))
