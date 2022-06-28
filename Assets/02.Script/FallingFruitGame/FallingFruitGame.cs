@@ -87,7 +87,7 @@ public class FallingFruitGame : Game
     IEnumerator Game_Co()
     {
         gameStart = true;
-        int count = 15; //15초
+        int count = 30; //30초
 
         CountTxt.gameObject.SetActive(true);
         while (count >= 0)
@@ -135,7 +135,7 @@ public class FallingFruitGame : Game
             timer += Time.deltaTime;
             if (timer >= nextSpawnTime)
             {
-                int randCount = Random.Range(2, 5);
+                int randCount = Random.Range(3, 8);
                 for (int i = 0; i < randCount; i++)
                 {
                     SpawnFruits(); //과일 스폰
@@ -153,12 +153,13 @@ public class FallingFruitGame : Game
     {
         //랜덤과일 및 스폰위치 잡기
         int rand = Random.Range(0, (int)FruitsType.Max);
-        float randx = Random.Range(-3.5f, 3.5f);
-        float randy = Random.Range(-0.3f, 0.3f);
+        float randx = Random.Range(-4.0f, 4.0f);
+        float randy = Random.Range(-0.5f, 0.5f);
 
         //과일 리소스폴더에서 가져와 스폰하기.. 포톤으로 소환하여 모든 클라에게 전달
         string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
-        PhotonNetwork.InstantiateRoomObject("Fruits/" + name, fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);  
+        GameObject fruitObj = PhotonNetwork.InstantiateRoomObject("Fruits/Fruits", fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);
+        fruitObj.GetComponent<Fruits>().type = rand;
     }
     
     public void GetFruit(PlayerCharacter player , Vector3 pos)//과일 충돌시 점수와 이펙트 소환 //호출되는 곳은 마스터 클라이언트에서만 호출된다.
@@ -180,6 +181,7 @@ public class FallingFruitGame : Game
         }   
      
         SpawnCollect(pos);  //흭득 이펙트 보여주기
+        SoundMgr.Inst.PlayEffect("GetFruits");
     }
 
     //PlayerProperties들이 업데이트 된다면 점수 갱신

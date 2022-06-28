@@ -2116,6 +2116,36 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 366907823}
   m_CullTransparentMesh: 1
+--- !u!1 &388362716
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 388362717}
+  m_Layer: 0
+  m_Name: FruitObjPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &388362717
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 388362716}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4471713813381205449}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &388746971
 GameObject:
   m_ObjectHideFlags: 0
@@ -8828,7 +8858,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Player1
+  m_text: "\uD50C\uB808\uC774\uC5B4 \uAE30\uB2EC\uB9AC\uB294 \uC911..."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
   m_sharedMaterial: {fileID: 2806262105400262100, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
@@ -11674,6 +11704,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4471713812993979741}
+  - {fileID: 388362717}
   - {fileID: 7550649471302682547}
   m_Father: {fileID: 0}
   m_RootOrder: 7
@@ -16305,7 +16336,7 @@ RectTransform:
   - {fileID: 1137941195}
   - {fileID: 1115099291}
   m_Father: {fileID: 4471713813381205449}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}

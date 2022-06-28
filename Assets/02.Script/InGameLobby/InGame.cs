@@ -136,13 +136,13 @@ public class InGame : MonoBehaviourPunCallbacks
         }
 
 
-        if (PhotonNetwork.PlayerListOthers.Length > 0) //이미 누군가 있다면
-        {
-            //상대 닉네임 적용
-            otherNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
-        }
-        else
-            otherNickName.text = "플레이어 기달리는 중...";
+        //if (PhotonNetwork.PlayerListOthers.Length > 0) //이미 누군가 있다면
+        //{
+        //    //상대 닉네임 적용
+        //    otherNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
+        //}
+        //else
+        //    otherNickName.text = "플레이어 기달리는 중...";
         
         SetWinCount();
     }
@@ -203,13 +203,12 @@ void CreatePlayer() //캐릭터 만들기
         LoadMgr.Inst.LoadScene("ServerLobby");
 
     }
-    public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
-    {
-        otherNickName.text = "<color="+ otherNickNameColor.ToString() +">" + newPlayer.NickName + "</color>";
-        otherWinCountTxt.text = "";
-
-        
-    }
+    //public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
+    //{
+    //    otherNickName.text = "<color="+ otherNickNameColor.ToString() +">" + newPlayer.NickName + "</color>";
+    //    otherWinCountTxt.text = "";
+      
+    //}
 
     public override void OnPlayerLeftRoom(Player otherPlayer) //만약 다른 플레이어가 나간다면 
     {
@@ -327,7 +326,7 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, curGame);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
     }
 
     [PunRPC]
@@ -413,7 +412,7 @@ void CreatePlayer() //캐릭터 만들기
         myNickName.text = "<color=" + myNickNameColor.ToString() + ">" + PhotonNetwork.LocalPlayer.NickName + "</color>";
         playerCharacters[0].ChangeNickName(myNickNameColor);
 
-        if (PhotonNetwork.PlayerListOthers.Length > 0)    
+        if (PhotonNetwork.PlayerListOthers.Length > 0 && !otherNickNameColor.Equals(MyColor.end))    
             otherNickName.text = "<color=" + otherNickNameColor.ToString() + ">" + PhotonNetwork.PlayerListOthers[0].NickName + "</color>";        
         
 

@@ -21,6 +21,9 @@ public class ResultUI : MonoBehaviour
     {
         ResultPanel.SetActive(true);
 
+        SoundMgr.Inst.PlayEffect("ResultOpenSound");
+
+
         myNickTxt.text = PhotonNetwork.LocalPlayer.NickName;
         otherNickTxt.text = PhotonNetwork.PlayerListOthers[0].NickName;
 
