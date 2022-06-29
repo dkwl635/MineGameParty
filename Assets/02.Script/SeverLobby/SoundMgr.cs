@@ -22,9 +22,7 @@ public class SoundMgr : MonoBehaviour
     Dictionary<string, AudioClip> sounds = new Dictionary<string, AudioClip>();
 
     //이펙트 사운드 
-    float effectVolum = 1;
-
-    
+    float effectVolum = 1;  
     public float EffectVolum { get { return effectVolum; } set { effectVolum = value; } }
     public float BGMVolum { get { return bgmSource.volume; } set { bgmSource.volume = value; } }
 
@@ -59,11 +57,6 @@ public class SoundMgr : MonoBehaviour
 
     }
 
-    private void Update()
-    {
-        
-    }
-
 
     void SoundInit()
     {
@@ -74,18 +67,18 @@ public class SoundMgr : MonoBehaviour
 
     }
 
-    public void PlayBGM(string BgmName)   //BGM 실핼
+    public void PlayBGM(string BgmName, float speed = 1)   //BGM 실핼
     {
         //사운드가 있는지 체크
         if(sounds.ContainsKey(BgmName)) 
             bgmSource.clip = sounds[BgmName];               
         else //없으면
         {
-            Debug.Log(BgmName + "를 가진 사운드가 없습니다.");
+          
             return;
         }
 
-
+        bgmSource.pitch = speed;
         bgmSource.Play();
     }
 
@@ -99,12 +92,13 @@ public class SoundMgr : MonoBehaviour
             nowAudio.clip = sounds[EffectName]; 
         else //없으면
         {
-            Debug.Log(EffectName + "를 가진 사운드가 없습니다.");
+          
             return;
         }
         
 
         nowAudio.volume = effectVolum;
+       // nowAudio.PlayOneShot(nowAudio.clip);
         nowAudio.Play();
 
         effectSource.Enqueue(nowAudio);

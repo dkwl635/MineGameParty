@@ -73,6 +73,7 @@ public class OXGame : Game
     {
         base.StartGame();
 
+        SoundMgr.Inst.PlayBGM("OXGame");
         //게임 UI On
         GamePanel.SetActive(true);
 
@@ -88,7 +89,16 @@ public class OXGame : Game
         step = 0;
         myChoose = OX.None;
         otherChoose = OX.None;
+        
+        //원격동기화를 위헤 CustomProperties에 선택한것 올리기
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
 
+        if (playerHash.ContainsKey("ChooseOX"))
+            playerHash["ChooseOX"] = myChoose;
+        else
+            playerHash.Add("ChooseOX", myChoose);
+
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
 
         //게임 로직 시작
@@ -198,7 +208,9 @@ public class OXGame : Game
         currQuestion = num;
         O_Btn.SetActive(true);
         X_Btn.SetActive(true);
-    
+
+        SoundMgr.Inst.PlayEffect("NextQuestion");
+
        StartCoroutine(Timer_Update());
 
     }
@@ -219,6 +231,8 @@ public class OXGame : Game
 
     public void Choose_OBtn ()  //유저 선택  O 
     {
+        SoundMgr.Inst.PlayEffect("Button");
+
         myChoose = OX.O;
         choose = true;
 
@@ -227,6 +241,8 @@ public class OXGame : Game
 
     public void Choose_XBtn()//유저 선택  X
     {
+        SoundMgr.Inst.PlayEffect("Button");
+
         myChoose = OX.X;
         choose = true;
 
@@ -332,8 +348,11 @@ public class OXGame : Game
 
     void OnCheckOX()//정답 확인
     {
+        SoundMgr.Inst.PlayEffect("CheckOX");
+
         myAnswerEffect.gameObject.SetActive(true);
         questionTxt.text = "정답은 : " + questionList[currQuestion].Value;
+
 
         if (myChoose == questionList[currQuestion].Value)
         {  
@@ -397,11 +416,10 @@ public class OXGame : Game
                      , ExitGames.Client.Photon.Hashtable changedProps)
     {
         if (targetPlayer != PhotonNetwork.LocalPlayer)
-        {
-            
+        {         
             if (changedProps.ContainsKey("ChooseOX"))
             {
-                Debug.Log("선택");
+       
                 otherChoose = (OX)changedProps["ChooseOX"];
 
             }

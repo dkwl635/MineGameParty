@@ -85,8 +85,7 @@ public class GameRollController : MonoBehaviourPunCallbacks
                 {
                     rollTr.rotation = Quaternion.Euler(new Vector3(0, angles[num], 0));
 
-                    Debug.Log(goalAngle);
-
+                 
                     yield return new WaitForSeconds(1.5f);
                     roller.SetActive(false);
 

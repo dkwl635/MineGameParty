@@ -34,11 +34,13 @@ public class InGame : MonoBehaviourPunCallbacks
    
     [Header("UI")]
     public GameObject roomCanavas;  //게임 방 정보 창   
+    public GameObject pallet;       //닉네임 색깔 창
     public GameObject configAndLobbyBtn;  //설정 버튼 나가기버튼
     public Button readyBtn;                 //레디 버튼    ... 반장은 없는 버튼
     public Text readyTxt;                     //레디 버튼 (준비완료, 준비) 를 나타낼 텍스트
     public Button StartBtn;                  //시작 버튼 .... 반장만 나올 버튼
-
+   
+  
     public GameObject roomMark; //방장마크
 
     public TextMeshProUGUI myNickName;               // 내닉네임 
@@ -68,8 +70,7 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         Inst = this;
 
-        //전체적인 프레임을 맞춰주기 위한
-        Application.targetFrameRate = 60;
+
 
         //PhotonView 컴포넌트 할당
         pv = GetComponent<PhotonView>();
@@ -124,7 +125,7 @@ public class InGame : MonoBehaviourPunCallbacks
         myNickName.text = "<color=" + myNickNameColor.ToString() + ">" + PhotonNetwork.LocalPlayer.NickName + "</color>"; 
 
 
-        if (PhotonNetwork.LocalPlayer.IsMasterClient) //방장일경우
+        if (PhotonNetwork.IsMasterClient) //방장일경우
         {
             readyBtn.gameObject.SetActive(false);
             roomMark.transform.SetParent(myNickName.transform, false);
@@ -135,14 +136,6 @@ public class InGame : MonoBehaviourPunCallbacks
             roomMark.transform.SetParent(otherNickName.transform, false);
         }
 
-
-        //if (PhotonNetwork.PlayerListOthers.Length > 0) //이미 누군가 있다면
-        //{
-        //    //상대 닉네임 적용
-        //    otherNickName.text = PhotonNetwork.PlayerListOthers[0].NickName;
-        //}
-        //else
-        //    otherNickName.text = "플레이어 기달리는 중...";
         
         SetWinCount();
     }
@@ -167,12 +160,7 @@ void CreatePlayer() //캐릭터 만들기
             a_AddPos.x = Random.Range(-2.0f, 2.0f);      
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
-
-
-        //포톤으로 만들어져 다른 클라에도 방에 들어오면 똑같이 만들어진다.
-        //하지만 캐릭터 쪽에서 위치 동기화가 진행되어 만들어지자마자 다른 위치로 이동된다.
-        //내 케릭터만 떨어지는 모습을 볼수 있다.
-       // PhotonNetwork.Instantiate("PlayerChacter/"+ UserData.CharName.ToString(), a_HPos, Quaternion.identity, 0);
+     
         PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);
  
     }
@@ -181,6 +169,7 @@ void CreatePlayer() //캐릭터 만들기
 #region RoomController   //서버 관련 함수
     public void LeftRoom() //방을나갈려는 함수 //나가기 버튼에 연결
     {
+        SoundMgr.Inst.PlayEffect("Button");
         //저장된 CustomProperties 초기화 시켜주기
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
 
@@ -214,7 +203,7 @@ void CreatePlayer() //캐릭터 만들기
     {
         otherNickName.text = "플레이어 기달리는 중...";
         otherWinCountTxt.text = "";
-        Debug.Log(otherPlayer.NickName + "나감");
+       
 
         StartBtn.gameObject.SetActive(false);
         //레디마크 off
@@ -233,6 +222,8 @@ void CreatePlayer() //캐릭터 만들기
 #region GameController 게임 진행 관련 함수
     public void ReadyBtn()  //레디 버튼 
     {
+        SoundMgr.Inst.PlayEffect("Button");
+
         isReady = !isReady;
 
         if (isReady)
@@ -248,7 +239,7 @@ void CreatePlayer() //캐릭터 만들기
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-        Debug.Log("ImReady");
+   
 
         //캐릭터 레디 표시
         playerCharacters[0].Ready(isReady);
@@ -262,8 +253,7 @@ void CreatePlayer() //캐릭터 만들기
             return;
 
         if (targetPlayer != PhotonNetwork.LocalPlayer)
-        {
-            Debug.Log("ready");
+        { 
             if (changedProps.ContainsKey("ready"))
             {   
                 StartBtn.gameObject.SetActive((bool)changedProps["ready"]);
@@ -275,12 +265,14 @@ void CreatePlayer() //캐릭터 만들기
     {
         if (!PhotonNetwork.LocalPlayer.IsMasterClient)
             return;
-        
-        StartBtn.gameObject.SetActive((bool)PhotonNetwork.PlayerListOthers[0].CustomProperties["ready"]); 
+
+        if (PhotonNetwork.PlayerListOthers.Length > 0)
+            StartBtn.gameObject.SetActive((bool)PhotonNetwork.PlayerListOthers[0].CustomProperties["ready"]);
     }
 
     public void GameStartBtn() //반장만 누를수 있는버튼
     {
+        SoundMgr.Inst.PlayEffect("Button");
         //모든 플레이어에게 전달해 게임을진행한다.
         pv.RPC("GameSelStart", RpcTarget.AllViaServer);
     }
@@ -299,6 +291,7 @@ void CreatePlayer() //캐릭터 만들기
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
         roomCanavas.SetActive(false);
+        pallet.SetActive(false);
         configAndLobbyBtn.SetActive(false);
 
 
@@ -326,7 +319,7 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, curGame);
     }
 
     [PunRPC]
@@ -392,6 +385,7 @@ void CreatePlayer() //캐릭터 만들기
     public void SetLobby()// 로비 창 새로고침
     {
         roomCanavas.SetActive(true);
+        pallet.SetActive(true);
         configAndLobbyBtn.SetActive(true);
 
         isReady = false;

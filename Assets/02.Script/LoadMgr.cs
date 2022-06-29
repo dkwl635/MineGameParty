@@ -18,6 +18,7 @@ public class LoadMgr : MonoBehaviour
 
     private void Awake()
     {
+       
         if (Inst == null)
         {
             Inst = this;

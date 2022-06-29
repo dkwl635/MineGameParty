@@ -17,6 +17,8 @@ public class SoundCtrlBox : MonoBehaviour
 
     private void Start()
     {
+        SoundMgr.Inst.PlayEffect("OpenSonudBox");
+
         bgmSlider.value = SoundMgr.Inst.BGMVolum;
         ChangeBGMSoundVolume(SoundMgr.Inst.BGMVolum);
         EffectSlider.value = SoundMgr.Inst.EffectVolum;
@@ -54,6 +56,7 @@ public class SoundCtrlBox : MonoBehaviour
 
     void BackBtn()
     {
+        SoundMgr.Inst.PlayEffect("Button");
         Destroy(this.gameObject);
     }
 

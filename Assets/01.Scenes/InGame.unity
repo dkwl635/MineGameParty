@@ -6142,6 +6142,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnPos: {fileID: 771424053}
   roomCanavas: {fileID: 1686200708}
+  pallet: {fileID: 265632733}
   configAndLobbyBtn: {fileID: 78129165}
   readyBtn: {fileID: 507951272}
   readyTxt: {fileID: 1256014135}

@@ -35,6 +35,8 @@ public class TalkBox : MonoBehaviourPunCallbacks
 
     void SendMsg()
     {
+        SoundMgr.Inst.PlayEffect("Button");
+
         string str = inputField.text;
         if (string.IsNullOrEmpty(str))
             return;

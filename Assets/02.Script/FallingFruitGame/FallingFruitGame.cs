@@ -68,6 +68,8 @@ public class FallingFruitGame : Game
     {
         base.StartGame();
 
+        SoundMgr.Inst.PlayBGM("FallingFruitGame");
+
         GamePanel.SetActive(true);
         //씬에 있는 플레이어 오브젝트 불러오기
         playerObj = InGame.Inst.playerCharacters;

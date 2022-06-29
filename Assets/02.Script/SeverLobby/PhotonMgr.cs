@@ -3,7 +3,6 @@ using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -30,21 +29,13 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     //사운드 이름
     const string buttonSound = "Button";
 
+    public GameObject loadingCircle;
+
 
     private void Awake()
     {    
         PhotonNetwork.SendRate = 60;            
         PhotonNetwork.SerializationRate = 30;
-
-        //if (!PhotonNetwork.IsConnected)
-        //{
-        //    //1번, 포톤 클라우드에 접속
-        //    PhotonNetwork.ConnectUsingSettings();
-        //    //포톤 서버에 접속시도(지역 서버 접속) -> AppID 사용자 인증 
-        //    //-> 로비 입장 진행
-        //}
-
-        //userNick.text = GetUserNick();
     }
 
     private void Start()
@@ -97,7 +88,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("서버 접속 완료");
+     
         //단순 포톤 서버 접속만 된 상태 (ConnectedToMaster)   
         PhotonNetwork.JoinLobby();
     }
@@ -111,9 +102,9 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     //PhotonNetwork.JoinLobby() 성공시 호출되는 로비 접속 콜백함수
     public override void OnJoinedLobby()
-    {   
-        Debug.Log("로비접속완료");
-        //방에서 로비로 나올 때도 유저 ID를 하나 셋팅해 주어야 한다.
+    {     
+        //로딩 이미지Off
+        loadingCircle.SetActive(false);
     }
 
     //랜덤 방 버튼 클릭 시 호출되는 함수
@@ -122,6 +113,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
         //버튼 사운드 효과
         SoundMgr.Inst.PlayEffect(buttonSound);
 
+        if (!PhotonNetwork.InLobby)
+            return;
         if (!CheckNickName()) //닉네임 확인
             return;
 
@@ -138,8 +131,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     //랜덤 방 입장이 실패한 경우 호출되는 콜백 함수
     public override void OnJoinRandomFailed(short returnCode, string message)
     {
-        Debug.Log("랜덤 방 참가 실패 (참가할 방이 존재하지 않습니다.)");
-
+       
         //지정한 조건에 맞는 룸 생성 함수
         //생성할 룸의 조건 설정
         string _roomName = "ROOM_" + Random.Range(0, 999).ToString("000");
@@ -157,8 +149,12 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public void ClickCreateRoom()
     {
+
         //버튼 사운드 효과
         SoundMgr.Inst.PlayEffect(buttonSound);
+
+        if (!PhotonNetwork.InLobby)
+            return;
 
         if (!CheckNickName()) //닉네임 확인
             return;
@@ -210,6 +206,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        //내가 가진 룸정보와 비교하여 삭제 및 추가
         int roomCount = roomList.Count;
         for (int i = 0; i < roomCount; i++)
         {
@@ -250,13 +247,12 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
             //텍스트 정보를 표시
             roomData.DispRoomData(myList[i].IsOpen);
 
-            }
+        }
     }
 
     //방입장 성공시
     public override void OnJoinedRoom()
-    {
-        Debug.Log("방 참가 완료");
+    {   
         //룸 씬으로 이동하는 코루틴 실행
         LoadMgr.Inst.LoadScene("InGame");
     }

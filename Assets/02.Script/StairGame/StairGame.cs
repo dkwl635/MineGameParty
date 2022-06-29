@@ -53,7 +53,7 @@ public class StairGame : Game
     public override void StartGame()
     {
         base.StartGame();
-
+        SoundMgr.Inst.PlayBGM("StairGame");
         //캐릭터 설정
         players = InGame.Inst.playerCharacters;
         myPlayer = players[0];
@@ -63,6 +63,7 @@ public class StairGame : Game
         otherSprite.color = new Color(1, 1, 1, 0.5f);
 
         camera = Camera.main.gameObject;
+
         BG = GameObject.Find("BG");
 
         //올라가는 버튼 적용
@@ -101,6 +102,8 @@ public class StairGame : Game
         if (!game)
             return;
 
+        SoundMgr.Inst.PlayEffect("UpStair");
+
         myPlayer.transform.position += Vector3.up + Vector3.right;
 
         camera.transform.position += Vector3.up;
@@ -112,6 +115,8 @@ public class StairGame : Game
     {
         if (!game)
             return;
+
+        SoundMgr.Inst.PlayEffect("UpStair");
 
         myPlayer.transform.position += Vector3.up + Vector3.left;
         
@@ -184,7 +189,7 @@ public class StairGame : Game
                 destory = false;
             // - 1.5, - 2.4
 
-            Debug.Log(stairs.Peek().transform.position.y + " : " + players[i].transform.position.y);
+       
         }
 
         if (destory)
@@ -253,7 +258,7 @@ public class StairGame : Game
         RaycastHit2D hit = Physics2D.Raycast(myPlayer.transform.position, Vector3.down, 1.0f);
         if(hit)
         {
-            Debug.Log("계단");
+
             nextTimer -= 0.01f;
             if (nextTimer <= 0.5f)
                 nextTimer = 0.5f;
@@ -275,19 +280,20 @@ public class StairGame : Game
         }
         else
         {
-            Debug.Log("없음");
+         
             NoStair();
         }
     }
 
     void NoStair()
-    {   
+    {
+        SoundMgr.Inst.PlayEffect("HitStair");
+        myPlayer.SetHit();
         GameOver();
     }
 
     void GameOver()
     { 
-        myPlayer.SetHit();
         pv.RPC("GameEnd", RpcTarget.AllViaServer);   
     }
 

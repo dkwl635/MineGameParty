@@ -70,6 +70,7 @@ public class RememberGame : Game, IPunObservable
     {
         base.StartGame();
 
+        SoundMgr.Inst.PlayBGM("RememberGame");
         //좌우 이동을 막는다
         myPlayer = InGame.Inst.playerCharacters[0];
         myPlayer.isMove = false;
@@ -244,6 +245,11 @@ public class RememberGame : Game, IPunObservable
         if (wait)
             return;
 
+        if (RL.Equals(0))
+            SoundMgr.Inst.PlayEffect("BtnL");
+        else
+            SoundMgr.Inst.PlayEffect("BtnR");
+
         check.Enqueue(RL);
     }
 
@@ -257,6 +263,8 @@ public class RememberGame : Game, IPunObservable
 
     void FailRemember()
     {
+        SoundMgr.Inst.PlayEffect("Fail");
+
         //다음
         ArrowSetting();
         MySetClear();
@@ -268,6 +276,8 @@ public class RememberGame : Game, IPunObservable
 
     void SuccessRemember()
     {
+        SoundMgr.Inst.PlayEffect("Success");
+
         levelGroup[level].SetActive(false);
 
         //다음 단계로 갈수 있으면 카운트up
