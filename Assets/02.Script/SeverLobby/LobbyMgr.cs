@@ -23,7 +23,9 @@ public class LobbyMgr : MonoBehaviour
 
 
     void Start()
-    {   
+    {
+       
+
         //로비 BGM On
         SoundMgr.Inst.PlayBGM(LobbyBGM);
         //설정버튼 셋팅

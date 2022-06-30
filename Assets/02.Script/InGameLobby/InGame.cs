@@ -70,7 +70,7 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         Inst = this;
 
-
+       
 
         //PhotonView 컴포넌트 할당
         pv = GetComponent<PhotonView>();
@@ -161,7 +161,7 @@ void CreatePlayer() //캐릭터 만들기
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
      
-        PhotonNetwork.Instantiate("PlayerChacter/Player", a_HPos, Quaternion.identity, 0);
+        PhotonNetwork.Instantiate("Player", a_HPos, Quaternion.identity, 0);
  
     }
 
@@ -299,8 +299,15 @@ void CreatePlayer() //캐릭터 만들기
     
         //두번째 플레이어 등록
         playerCharacters[1] = GameObject.FindGameObjectWithTag("OtherPlayer").GetComponent<PlayerCharacter>();
-
         playerCharacters[0].Ready(false);
+
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
+        if (playerHash.ContainsKey("DiceEnd"))
+            playerHash["DiceEnd"] = false;
+        else
+            playerHash.Add("DiceEnd", false);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
 
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
             StartCoroutine(StartSelGame());
@@ -310,7 +317,6 @@ void CreatePlayer() //캐릭터 만들기
     {
         yield return null;
         int curGame = GameRoll.Roll(); //돌림판을 돌려나온 다음 게임 번호
-
         yield return null;
 
         while (!GameRoll.EndRoll()) //돌림판이 멈추면
@@ -324,10 +330,9 @@ void CreatePlayer() //캐릭터 만들기
 
     [PunRPC]
     void StartMiniGame(int idx)//정해진 미니게임 활성화 하기
-    {     
-       
-        MiniGame[idx].StartGame();
-       
+    {
+        GameRoll.roller.SetActive(false);
+        MiniGame[idx].StartGame();    
     }
 
     public void WinGame() //승리카운트

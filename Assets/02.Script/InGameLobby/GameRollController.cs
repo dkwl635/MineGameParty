@@ -2,6 +2,7 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameRollController : MonoBehaviourPunCallbacks 
 {
@@ -20,13 +21,19 @@ public class GameRollController : MonoBehaviourPunCallbacks
     float[] angles = { 0.0f, 90.0f, 180.0f, 270.0f};
     float goalAngle = 0;// 목표 각도 값
 
+    public GameObject waitText;
 
+    ExitGames.Client.Photon.Hashtable playerHash;
+    AudioSource audioSource;
+
+    
 
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
 
         rollTr = roller.GetComponent<Transform>();
+        audioSource = roller.GetComponent<AudioSource>();
     }
 
 
@@ -58,11 +65,13 @@ public class GameRollController : MonoBehaviourPunCallbacks
     IEnumerator StartRoll(int num)
     {
         roller.SetActive(true);
-           goalAngle = angles[num];
+        goalAngle = angles[num];
         roll = true;
         power = 100;
-    
-        while(true)
+
+        waitText.SetActive(false);
+
+        while (true)
         {
             yield return null;
 
@@ -87,9 +96,17 @@ public class GameRollController : MonoBehaviourPunCallbacks
 
                  
                     yield return new WaitForSeconds(1.5f);
-                    roller.SetActive(false);
-
                     endroll = false;
+
+                    playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
+                    if (playerHash.ContainsKey("DiceEnd"))
+                        playerHash["DiceEnd"] = true;
+                    else
+                        playerHash.Add("DiceEnd", true);
+                    PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+
+                    audioSource.Stop();
+                    waitText.SetActive(true);
                     break;
 
                 }
@@ -103,10 +120,15 @@ public class GameRollController : MonoBehaviourPunCallbacks
 
     public bool EndRoll()
     {
-        if (!roll && !endroll)
-            return true;
+        for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
+        {
+            if (!(bool)PhotonNetwork.PlayerList[i].CustomProperties["DiceEnd"])
+            {
+                return false;
+            }
+        }
 
-        return false;
+        return true;
     }
 
     [PunRPC]

@@ -160,7 +160,7 @@ public class FallingFruitGame : Game
 
         //과일 리소스폴더에서 가져와 스폰하기.. 포톤으로 소환하여 모든 클라에게 전달
         string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
-        GameObject fruitObj = PhotonNetwork.InstantiateRoomObject("Fruits/Fruits", fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);
+        GameObject fruitObj = PhotonNetwork.InstantiateRoomObject("Fruits", fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);
         fruitObj.GetComponent<Fruits>().type = rand;
     }
     
