@@ -8,7 +8,6 @@ using Photon.Realtime;
 
 public class FallingFruitGame : Game
 {
-   
     enum FruitsType //과일 오브젝트를 불러오기 위한 
     {
         Apple,
@@ -38,10 +37,11 @@ public class FallingFruitGame : Game
     public GameObject GamePanel;
     public TextMeshProUGUI scoreTxt;    //점수 
     public TextMeshProUGUI CountTxt;   //남은시간
-                      //점수 
+                                       //점수 
 
+    int count = 30;
     
-    float timer = 0.0f;                 //게임시간   
+    float spawnTimer = 0.0f;                 //게임시간   
     float nextSpawnTime = 1.0f; //과일 스폰 주기
     bool gameStart = false;  //게임 상태 bool 변수
 
@@ -89,20 +89,19 @@ public class FallingFruitGame : Game
     IEnumerator Game_Co()
     {
         gameStart = true;
-        int count = 30; //30초
+        count = 30; //30초
 
         CountTxt.gameObject.SetActive(true);
+        CountTxt.text = count.ToString();
         while (count >= 0)
-        {
-            CountTxt.text = count.ToString();
-            count--;
+        {     
             yield return new WaitForSeconds(1.0f);
+            count--;
+            CountTxt.text = count.ToString();
         }
         
         //게임 종료
         gameStart = false;
-
-
         //과일오브젝트 삭제
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
@@ -134,8 +133,8 @@ public class FallingFruitGame : Game
             yield return null;
 
             //과일 스폰
-            timer += Time.deltaTime;
-            if (timer >= nextSpawnTime)
+            spawnTimer += Time.deltaTime;
+            if (spawnTimer >= nextSpawnTime)
             {
                 int randCount = Random.Range(3, 8);
                 for (int i = 0; i < randCount; i++)
@@ -143,14 +142,20 @@ public class FallingFruitGame : Game
                     SpawnFruits(); //과일 스폰
                 }
 
-                timer = 0.0f;
+                spawnTimer = 0.0f;
                 nextSpawnTime = Random.Range(0.7f, 1.5f);
             }
 
         }
     }
 
-   
+   [PunRPC]
+   void TimeTxt(int count)
+    {
+        CountTxt.text = count.ToString();
+        this.count = count;
+    }
+
     public void SpawnFruits()   //과일 스폰하기
     {
         //랜덤과일 및 스폰위치 잡기
@@ -224,5 +229,5 @@ public class FallingFruitGame : Game
         collectQu.Enqueue(obj);
     }
 
-
+ 
 }

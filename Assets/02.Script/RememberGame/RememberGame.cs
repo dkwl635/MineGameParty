@@ -74,7 +74,7 @@ public class RememberGame : Game, IPunObservable
         //좌우 이동을 막는다
         myPlayer = InGame.Inst.playerCharacters[0];
         myPlayer.isMove = false;
-
+     
         //버튼 적용
         Button LBT = GameObject.Find("LeftButton").GetComponent<Button>();
         LBT.onClick.RemoveAllListeners();
@@ -98,8 +98,7 @@ public class RememberGame : Game, IPunObservable
         //초기화
         level = 0;
         answerCount = 0;
-        check.Clear();
-       
+      
         timerObj.SetActive(false);
         infoText.gameObject.SetActive(true);
         infoText.text = "나오는 화살표 방향에 맞게\n순서대로 입력해주세요\n시간이 지나면 사라집니다.";
@@ -205,6 +204,9 @@ public class RememberGame : Game, IPunObservable
 
     void ArrowSetting() //레벨에 맞게 무작위 화살표 셋팅
     {
+        check.Clear();
+        wait = false;
+
         levelGroup[level].SetActive(true);
         //무작위 선택을 위해
         int rand = 0;
@@ -222,9 +224,6 @@ public class RememberGame : Game, IPunObservable
 
         // 화살표 일정시간 뒤에 사라지게 하는 코루틴 함수
         currCo = StartCoroutine(OffArrow(leveltimer[level]));
-
-        //큐 비우기
-        check.Clear();
     }
 
     IEnumerator OffArrow(float time)//일정시간 뒤에 화살표 안보이게

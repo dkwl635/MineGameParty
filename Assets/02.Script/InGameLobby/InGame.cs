@@ -70,7 +70,7 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         Inst = this;
 
-       
+        Application.targetFrameRate = 60;
 
         //PhotonView 컴포넌트 할당
         pv = GetComponent<PhotonView>();
@@ -325,12 +325,13 @@ void CreatePlayer() //캐릭터 만들기
         }
 
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, curGame);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
     }
 
     [PunRPC]
     void StartMiniGame(int idx)//정해진 미니게임 활성화 하기
     {
+        GameRoll.waitText.SetActive(false);
         GameRoll.roller.SetActive(false);
         MiniGame[idx].StartGame();    
     }

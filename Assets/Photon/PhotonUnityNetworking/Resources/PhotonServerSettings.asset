@@ -56,6 +56,7 @@ MonoBehaviour:
   - RPCReady
   - GetFruit
   - SendMsg
+  - TimeTxt
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

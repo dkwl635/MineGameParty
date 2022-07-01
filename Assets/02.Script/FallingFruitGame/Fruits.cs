@@ -28,12 +28,13 @@ public class Fruits : MonoBehaviourPunCallbacks
         {
                 animator.SetInteger("Fruits", type);
                 transform.Translate(Vector2.down * Time.deltaTime);
+                
                 bool get = false;
                 for (int i = 0; i < FallingFruitGame.Inst.playerObj.Length; i++)
                 {
                     temp = Vector2.Distance(FallingFruitGame.Inst.playerObj[i].transform.position, transform.position);
                     
-                    if (temp <= 0.5f)
+                    if (temp <= 0.7f)
                     {
                         get = true;                                  
                         

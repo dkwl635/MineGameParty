@@ -87,8 +87,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     #endif
 
     public override void OnConnectedToMaster()
-    {
-     
+    {    
         //단순 포톤 서버 접속만 된 상태 (ConnectedToMaster)   
         PhotonNetwork.JoinLobby();
     }

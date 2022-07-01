@@ -17,7 +17,6 @@ public class GameRollController : MonoBehaviourPunCallbacks
     bool roll = false; //돌고 있는지
     bool endroll = false;   //
     //각각 번호 마다 멈춰야 할 각도 
-    //float[] angles = { 0.0f, 45.0f, 90.0f, 135.0f, 180.0f, 225.0f, 270.0f , 315.0f, 360.0f};
     float[] angles = { 0.0f, 90.0f, 180.0f, 270.0f};
     float goalAngle = 0;// 목표 각도 값
 
@@ -37,19 +36,6 @@ public class GameRollController : MonoBehaviourPunCallbacks
     }
 
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Roll();
-            }
-        }
-
-
-    }
     public int  Roll()
     {
         //게임 판 돌리기
@@ -92,9 +78,7 @@ public class GameRollController : MonoBehaviourPunCallbacks
                 rollTr.Rotate(0, power, 0);             
                 if (Mathf.Abs(goalAngle - rollTr.rotation.eulerAngles.y) <= 1.0f)
                 {
-                    rollTr.rotation = Quaternion.Euler(new Vector3(0, angles[num], 0));
-
-                 
+                    rollTr.rotation = Quaternion.Euler(new Vector3(0, angles[num], 0));                
                     yield return new WaitForSeconds(1.5f);
                     endroll = false;
 

@@ -258,7 +258,6 @@ public class StairGame : Game
         RaycastHit2D hit = Physics2D.Raycast(myPlayer.transform.position, Vector3.down, 1.0f);
         if(hit)
         {
-
             nextTimer -= 0.01f;
             if (nextTimer <= 0.5f)
                 nextTimer = 0.5f;

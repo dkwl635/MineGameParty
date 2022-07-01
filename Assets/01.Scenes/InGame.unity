@@ -5570,9 +5570,8 @@ Transform:
   - {fileID: 890492438}
   - {fileID: 993026841}
   - {fileID: 962083264}
-  - {fileID: 1778150727}
   m_Father: {fileID: 1163924362}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &1079026785
 AudioSource:
@@ -6201,6 +6200,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 1778150727}
   - {fileID: 1079026784}
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -9355,7 +9355,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1548352383
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9783,7 +9783,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1617063406}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.5, y: -3, z: 0}
+  m_LocalPosition: {x: 4.57, y: -3.03, z: 0}
   m_LocalScale: {x: 1, y: 8, z: 1}
   m_Children: []
   m_Father: {fileID: 1386572088}
@@ -9945,7 +9945,7 @@ TilemapRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
@@ -10480,30 +10480,14 @@ CompositeCollider2D:
   m_ColliderPaths:
   - m_Collider: {fileID: 1699188285}
     m_ColliderPaths:
-    - - X: 29999900
-        Y: -29999959
-      - X: 29999900
+    - - X: 50000000
+        Y: -70000000
+      - X: 50000000
         Y: -30000000
       - X: -50000000
         Y: -30000000
       - X: -50000000
         Y: -70000000
-      - X: 29999900
-        Y: -70000000
-      - X: 29999900
-        Y: -70000041
-      - X: 29999959
-        Y: -70000100
-      - X: 50000041
-        Y: -70000100
-      - X: 50000100
-        Y: -70000041
-      - X: 50000100
-        Y: -29999959
-      - X: 50000041
-        Y: -29999900
-      - X: 29999959
-        Y: -29999900
   m_CompositePaths:
     m_Paths:
     - - {x: 4.9999747, y: -7.0000095}
@@ -10566,7 +10550,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1778150727
 RectTransform:
   m_ObjectHideFlags: 0
@@ -10574,12 +10558,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1778150726}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1.83}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1079026784}
-  m_RootOrder: 4
+  m_Father: {fileID: 1163924362}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -10606,7 +10590,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB2E4\uB978 \uD50C\uB808\uC774\uC5B4 \n\uAE30\uB2EC\uB9AC\uB294 \uC911.."
+  m_text: waiting...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
   m_sharedMaterial: {fileID: 2806262105400262100, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
@@ -10615,8 +10599,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282335039
-  m_fontColor: {r: 0.24528301, g: 0.24528301, b: 0.24528301, a: 1}
+    rgba: 4278190335
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11163,7 +11147,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1938991604}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -5.5, y: -3, z: 0}
+  m_LocalPosition: {x: -4.53, y: -3, z: 0}
   m_LocalScale: {x: 1, y: 8, z: 1}
   m_Children: []
   m_Father: {fileID: 1386572088}
@@ -12507,7 +12491,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: ssssssssss
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
   m_sharedMaterial: {fileID: 3257245781535115989, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -12571,7 +12555,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &4628468972691747555
@@ -12849,7 +12833,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4628468973261015059
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13033,10 +13017,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC2A4\uD0C0\uB098\uD558\uC2E4"
+  m_text: "\uD50Co"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
-  m_sharedMaterial: {fileID: 3257245781535115989, guid: 6a0c26f49fe7a6a4f9eb2b3f140f0cb4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
+  m_sharedMaterial: {fileID: 2806262105400262100, guid: d29af2d56acc27042a46b84b9a375fe2, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -13060,7 +13044,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 37.2
+  m_fontSize: 34.5
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
