@@ -19,13 +19,14 @@ public class LobbyMgr : MonoBehaviour
     {
         //전체적인 프레임을 맞춰주기 위한
         Application.targetFrameRate = 30;
+       
+        SetResolution();
     }
 
 
     void Start()
     {
-       
-
+      
         //로비 BGM On
         SoundMgr.Inst.PlayBGM(LobbyBGM);
         //설정버튼 셋팅
@@ -55,4 +56,11 @@ public class LobbyMgr : MonoBehaviour
         Application.Quit();
     }
 
+    public void SetResolution() //로비 메니저로 갈예정
+    {
+        int setWidth = 720; // 사용자 설정 너비
+        int setHeight = 1280; // 사용자 설정 높이
+        Screen.SetResolution(setWidth, setHeight, false); // SetResolution 함수 제대로 사용하기
+
+    }
 }

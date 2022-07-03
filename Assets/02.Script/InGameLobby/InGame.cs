@@ -92,7 +92,6 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         SoundMgr.Inst.PlayBGM("InGame");
                
-        SetResolution();
         //방에 입장에 성공적이면 통신 시작
         PhotonNetwork.IsMessageQueueRunning = true;
         //패널 셋팅
@@ -140,14 +139,7 @@ public class InGame : MonoBehaviourPunCallbacks
         SetWinCount();
     }
 
-  
-    public void SetResolution() //로비 메니저로 갈예정
-    {
-        int setWidth = 720; // 사용자 설정 너비
-        int setHeight = 1280; // 사용자 설정 높이
-        Screen.SetResolution(setWidth, setHeight, false); // SetResolution 함수 제대로 사용하기
 
-    }
 void CreatePlayer() //캐릭터 만들기
     {
         //랜덤한 위치에 만들어주기
