@@ -51,6 +51,10 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
             OnJoinedLobby();
 
         userNick.text = GetUserNick();
+
+        joinRandomRoomBtn.interactable = false;
+        createRoomBtn.interactable = false;
+
     }
 
     //저장된 닉네임 가져오기
@@ -88,7 +92,7 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {    
-        //단순 포톤 서버 접속만 된 상태 (ConnectedToMaster)   
+        //단순 포톤 서버 접속만 된 상태 (ConnectedToMaster)
         PhotonNetwork.JoinLobby();
     }
 
@@ -101,7 +105,10 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     //PhotonNetwork.JoinLobby() 성공시 호출되는 로비 접속 콜백함수
     public override void OnJoinedLobby()
-    {     
+    {
+        joinRandomRoomBtn.interactable = true;
+        createRoomBtn.interactable = true;
+
         //로딩 이미지Off
         loadingCircle.SetActive(false);
     }

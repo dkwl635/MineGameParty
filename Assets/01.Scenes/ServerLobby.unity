@@ -211,7 +211,7 @@ GameObject:
   - component: {fileID: 209685562}
   - component: {fileID: 209685563}
   m_Layer: 0
-  m_Name: LoobyMgr
+  m_Name: LobbyMgr
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4658,10 +4658,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 1917c23ef13a0cc479bdaad746583a22, type: 3}
-    m_FontSize: 40
+    m_FontSize: 30
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 4
+    m_MinSize: 3
     m_MaxSize: 50
     m_Alignment: 3
     m_AlignByGeometry: 0
@@ -4669,7 +4669,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\uB2C9\uB124\uC784"
+  m_Text: "\uB2C9\uB124\uC784\uC744 \uC801\uC5B4\uC8FC\uC138\uC694"
 --- !u!222 &6155008115396323721
 CanvasRenderer:
   m_ObjectHideFlags: 0
