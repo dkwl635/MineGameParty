@@ -10,10 +10,7 @@ public enum CharName
     Ninja_Frog,
 }
 
-
 public class UserData
 {
-
     static public CharName CharName = CharName.Virtual_Guy;
-
 }

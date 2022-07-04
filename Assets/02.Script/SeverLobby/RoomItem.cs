@@ -27,8 +27,6 @@ public class RoomItem : MonoBehaviour
                 RefPtInit.OnClickRoomItem(roomName);
         });
     }
-
-
     public void DispRoomData(bool a_IsOpen)
     {
         if (a_IsOpen == true)
@@ -49,6 +47,5 @@ public class RoomItem : MonoBehaviour
         else
             textConnectInfo.text = "(" + connectPlayer.ToString() + "/"
                                             + maxPlayer.ToString() + ")";
-
-    } //public void DispRoomData(bool a_IsOpen)
+    } 
 }

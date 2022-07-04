@@ -85,8 +85,8 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
     {
         string a_str = PhotonNetwork.NetworkClientState.ToString();
         //현재 포톤의 상태를 string으로 리턴해 주는 함수
-        GUI.Label(new Rect(10, 1, 1500, 60),
-                    "<color=#ff0000><size=50>" + a_str + "</size></color>");
+        //GUI.Label(new Rect(10, 1, 1500, 60),
+       //             "<color=#ff0000><size=50>" + a_str + "</size></color>");
     }
     #endif
 
@@ -155,10 +155,10 @@ public class PhotonMgr : MonoBehaviourPunCallbacks
 
     public void ClickCreateRoom()
     {
-
         //버튼 사운드 효과
         SoundMgr.Inst.PlayEffect(buttonSound);
 
+        //포톤네트워크가 로비에 있는지 확인
         if (!PhotonNetwork.InLobby)
             return;
 

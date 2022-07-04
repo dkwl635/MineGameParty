@@ -20,15 +20,21 @@ public class Fruits : MonoBehaviourPunCallbacks
         animator = GetComponent<Animator>();
     }
 
+    private void FixedUpdate()
+    {
+        //PhotonView로 인해 위치 동기화 됨
+        if (PhotonNetwork.LocalPlayer.IsMasterClient)
+        {
+            transform.Translate(Vector2.down * Time.fixedTime * 0.001f);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {              
-        //동시 충돌 알아보기
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
         {
-                animator.SetInteger("Fruits", type);
-                transform.Translate(Vector2.down * Time.deltaTime);
-                
+                animator.SetInteger("Fruits", type);                     
                 bool get = false;
                 for (int i = 0; i < FallingFruitGame.Inst.playerObj.Length; i++)
                 {

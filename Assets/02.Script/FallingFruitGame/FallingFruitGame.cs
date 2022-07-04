@@ -158,13 +158,13 @@ public class FallingFruitGame : Game
 
     public void SpawnFruits()   //과일 스폰하기
     {
+        Debug.Log("a");
         //랜덤과일 및 스폰위치 잡기
         int rand = Random.Range(0, (int)FruitsType.Max);
         float randx = Random.Range(-4.0f, 4.0f);
         float randy = Random.Range(-0.5f, 0.5f);
 
         //과일 리소스폴더에서 가져와 스폰하기.. 포톤으로 소환하여 모든 클라에게 전달
-        string name = ((FruitsType)Random.Range(0, (int)FruitsType.Max)).ToString();
         GameObject fruitObj = PhotonNetwork.InstantiateRoomObject("Fruits", fruitsSpanwPos.transform.position + Vector3.right * randx + Vector3.up * randy, Quaternion.identity);
         fruitObj.GetComponent<Fruits>().type = rand;
     }
