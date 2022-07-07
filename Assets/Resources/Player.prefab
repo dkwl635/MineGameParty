@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 204309624633745978}
   - component: {fileID: 204309624633745972}
   - component: {fileID: 204309624633745973}
-  - component: {fileID: 204309624633745974}
   - component: {fileID: 204309624633745975}
+  - component: {fileID: 204309624633745974}
   - component: {fileID: 7090275966366354931}
   - component: {fileID: 7384338405250575180}
   - component: {fileID: 5160546020404873966}
@@ -137,6 +137,25 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!95 &204309624633745975
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204309624633745977}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: af3d5ad54ef9a054ab0b2fd67f4e4e40, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &204309624633745974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,25 +176,6 @@ MonoBehaviour:
   velocity: {x: 0, y: 0}
   currPos: {x: 0, y: 0, z: 0}
   isMove: 1
---- !u!95 &204309624633745975
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 204309624633745977}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: af3d5ad54ef9a054ab0b2fd67f4e4e40, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &7090275966366354931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,7 +239,7 @@ MonoBehaviour:
     SynchronizeType: 0
     Name: hit
   - Type: 3
-    SynchronizeType: 0
+    SynchronizeType: 2
     Name: Char
   m_SynchronizeLayers:
   - SynchronizeType: 0

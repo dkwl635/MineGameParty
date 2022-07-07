@@ -23,15 +23,12 @@ public class InGame : MonoBehaviourPunCallbacks
 
     PhotonView pv;  //포톤 동기화를 위한 포톤뷰
     
-
     //캐릭터 스폰 위치
     public GameObject spawnPos; //게임입장시 중심 스폰위치
 
-
-
     //동기화를 위한 변수 선언
-    ExitGames.Client.Photon.Hashtable playerHash; 
-   
+    ExitGames.Client.Photon.Hashtable playerHash = new ExitGames.Client.Photon.Hashtable();
+
     [Header("UI")]
     public GameObject roomCanavas;  //게임 방 정보 창   
     public GameObject pallet;       //닉네임 색깔 창
@@ -39,25 +36,23 @@ public class InGame : MonoBehaviourPunCallbacks
     public Button readyBtn;                 //레디 버튼    ... 반장은 없는 버튼
     public Text readyTxt;                     //레디 버튼 (준비완료, 준비) 를 나타낼 텍스트
     public Button StartBtn;                  //시작 버튼 .... 반장만 나올 버튼
-   
   
-    public GameObject roomMark; //방장마크
 
-    public TextMeshProUGUI myNickName;               // 내닉네임 
-    public TextMeshProUGUI otherNickName;             //상대 닉네임
-    public TextMeshProUGUI myWinCountTxt;   //내 승점
-    public TextMeshProUGUI otherWinCountTxt;    //상대 승점
+    public TextMeshProUGUI myNickName;           // 내닉네임 
+    public TextMeshProUGUI otherNickName;        //상대 닉네임
+    public TextMeshProUGUI myWinCountTxt;       //내 승점
+    public TextMeshProUGUI otherWinCountTxt;   //상대 승점
     public Button soundBtn; //사운드 설정버튼
 
     [Header("ResultUI")]
     public ResultUI resultUI;
 
     [Header("Game")]
+    public GameObject roomMark; //방장마크
     public GameRollController GameRoll; //게임 선택을 위한 룰러 
     public Game[] MiniGame;       //미니게임이 담겨있는
 
     TalkBox talkBox;
-
     
     public  MyColor myNickNameColor = MyColor.black;
     public  MyColor otherNickNameColor = MyColor.black;
@@ -70,20 +65,16 @@ public class InGame : MonoBehaviourPunCallbacks
     {
         Inst = this;
 
-        Application.targetFrameRate = 60;
-
         //PhotonView 컴포넌트 할당
         pv = GetComponent<PhotonView>();
-        //자기자신캐릭터 생성하는 함수 호출
-
-        if (playerHash == null)
-            playerHash = new ExitGames.Client.Photon.Hashtable();
-
+      
         talkBox = GetComponent<TalkBox>();
 
+        //이미 다른 플레이어가 있으면 그캐릭터 닉네임 색깔 적용
         if (PhotonNetwork.PlayerListOthers.Length > 0)
-            otherNickNameColor = PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("NickColor") ? (MyColor)((int)PhotonNetwork.PlayerListOthers[0].CustomProperties["NickColor"]) : MyColor.black;
+            otherNickNameColor = (MyColor)((int)PhotonNetwork.PlayerListOthers[0].CustomProperties["NickColor"]);
 
+        //게임 종류갯수 적용
         GameRoll.GameCount = (int)GameType.Last;
     }
 
@@ -106,23 +97,20 @@ public class InGame : MonoBehaviourPunCallbacks
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
 
-        PhotonNetwork.CurrentRoom.IsVisible = true;
+        //방 설정 끝나면 방 활성화
+        if (PhotonNetwork.IsMasterClient)
+            PhotonNetwork.CurrentRoom.IsVisible = true;
     }
-
-
 
 
     void InitPanel() //입장시 패널 설정
     {
         //사운드 설정하는 버튼 함수 연결
-        soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);
-        
+        soundBtn.onClick.AddListener(SoundMgr.Inst.OnSoundCtrlBox);   
         //패널 셋팅,버튼 UI 셋팅하기       
         StartBtn.gameObject.SetActive(false);
-
         //내닉네임 적용
         myNickName.text = "<color=" + myNickNameColor.ToString() + ">" + PhotonNetwork.LocalPlayer.NickName + "</color>"; 
-
 
         if (PhotonNetwork.IsMasterClient) //방장일경우
         {
@@ -134,13 +122,11 @@ public class InGame : MonoBehaviourPunCallbacks
             readyBtn.gameObject.SetActive(true);
             roomMark.transform.SetParent(otherNickName.transform, false);
         }
-
-        
+    
         SetWinCount();
     }
 
-
-void CreatePlayer() //캐릭터 만들기
+    void CreatePlayer() //캐릭터 만들기
     {
         //랜덤한 위치에 만들어주기
         Vector3 a_HPos = Vector3.zero;
@@ -152,9 +138,8 @@ void CreatePlayer() //캐릭터 만들기
             a_AddPos.x = Random.Range(-2.0f, 2.0f);      
             a_HPos = spawnPos.transform.position + a_AddPos;
         }
-     
+        //포톤으로 캐릭터 스폰하기
         PhotonNetwork.Instantiate("Player", a_HPos, Quaternion.identity, 0);
- 
     }
 
 
@@ -166,11 +151,9 @@ void CreatePlayer() //캐릭터 만들기
         PhotonNetwork.LocalPlayer.CustomProperties.Clear();
 
         //만약 방장이면   룸에 대한CustomProperties 초기화 시켜주기
-        if (PhotonNetwork.IsMasterClient)
-        {
+        if (PhotonNetwork.IsMasterClient)   
             PhotonNetwork.CurrentRoom.CustomProperties.Clear();       
-        }
-
+       
         //캐릭터 삭제
         PhotonNetwork.Destroy(playerCharacters[0].gameObject);
 
@@ -184,12 +167,6 @@ void CreatePlayer() //캐릭터 만들기
         LoadMgr.Inst.LoadScene("ServerLobby");
 
     }
-    //public override void OnPlayerEnteredRoom(Player newPlayer) //누군가 들어오면
-    //{
-    //    otherNickName.text = "<color="+ otherNickNameColor.ToString() +">" + newPlayer.NickName + "</color>";
-    //    otherWinCountTxt.text = "";
-      
-    //}
 
     public override void OnPlayerLeftRoom(Player otherPlayer) //만약 다른 플레이어가 나간다면 
     {
@@ -205,38 +182,12 @@ void CreatePlayer() //캐릭터 만들기
         //방장 마크 옮기기
         playerCharacters[0].starImg.SetActive(true);
         roomMark.transform.SetParent(myNickName.transform, false);
-
     }
 
 
     #endregion
 
-#region GameController 게임 진행 관련 함수
-    public void ReadyBtn()  //레디 버튼 
-    {
-        SoundMgr.Inst.PlayEffect("Button");
-
-        isReady = !isReady;
-
-        if (isReady)
-        {
-            readyTxt.text = "준비완료";
-        }
-        else
-        {
-            readyTxt.text = "준비하기";
-        }
-
-        //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-        playerHash["ready"] = isReady;
-        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-   
-
-        //캐릭터 레디 표시
-        playerCharacters[0].Ready(isReady);
-    }
-
+    #region GameController 게임 진행 관련 함수
     //OnPlayerProperties 변화를 감지해서 레디를 확인해서 게임 시작할수 있도록
     public override void OnPlayerPropertiesUpdate(Player targetPlayer
                  , ExitGames.Client.Photon.Hashtable changedProps)
@@ -245,13 +196,34 @@ void CreatePlayer() //캐릭터 만들기
             return;
 
         if (targetPlayer != PhotonNetwork.LocalPlayer)
-        { 
+        {
             if (changedProps.ContainsKey("ready"))
-            {   
+            {
                 StartBtn.gameObject.SetActive((bool)changedProps["ready"]);
             }
         }
     }
+
+    public void ReadyBtn()  //레디 버튼 
+    {
+        SoundMgr.Inst.PlayEffect("Button");
+
+        isReady = !isReady;
+
+        if (isReady)     
+            readyTxt.text = "준비완료";   
+        else       
+            readyTxt.text = "준비하기";      
+
+        //레디 정보를 저장해서 방장쪽에서 확인할수 있게 한다.
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
+        playerHash["ready"] = isReady;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+  
+        //캐릭터 레디 표시
+        playerCharacters[0].Ready(isReady);
+    }
+
 
     void CheckReady()
     {
@@ -274,25 +246,24 @@ void CreatePlayer() //캐릭터 만들기
     {
         //채팅창 클리어
         talkBox.ClearText();
-
-        //준비완료 한거 준비하기로 초기화
+        //준비완료 한거 준비하기로 초기화/방장이든 아니든 초기화
         readyTxt.text = "준비하기";
         isReady = false;
-
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         playerHash["ready"] = isReady;
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
+        //UI 꺼주기
         roomCanavas.SetActive(false);
         pallet.SetActive(false);
         configAndLobbyBtn.SetActive(false);
 
-
         GameRoll.roller.SetActive(true);
     
-        //두번째 플레이어 등록
+        //플레이어 캐릭터 등록하기
         playerCharacters[1] = GameObject.FindGameObjectWithTag("OtherPlayer").GetComponent<PlayerCharacter>();
-        playerCharacters[0].Ready(false);
+        playerCharacters[1].Ready(false);
 
+        //주사위 돌리는거 혹시 모를 딜레이를 위한
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         if (playerHash.ContainsKey("DiceEnd"))
             playerHash["DiceEnd"] = false;
@@ -311,13 +282,10 @@ void CreatePlayer() //캐릭터 만들기
         int curGame = GameRoll.Roll(); //돌림판을 돌려나온 다음 게임 번호
         yield return null;
 
-        while (!GameRoll.EndRoll()) //돌림판이 멈추면
-        {
+        while (!GameRoll.EndRoll()) //돌림판이 멈추면    
             yield return null;
-        }
-
         // 정해진 미니게임 시작하기
-        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, 0);
+        pv.RPC("StartMiniGame", RpcTarget.AllViaServer, curGame);
     }
 
     [PunRPC]
@@ -356,7 +324,6 @@ void CreatePlayer() //캐릭터 만들기
         }
         else
             myWinCountTxt.text = "";
-
 
 
         if (PhotonNetwork.PlayerListOthers[0].CustomProperties.ContainsKey("winCount"))

@@ -4,30 +4,24 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using Photon.Pun;
-using Photon.Realtime;
 
 
 public class RememberGame : Game, IPunObservable
 {
     //화살표 이미지   0 : left , 1 : right
     public Sprite[] arrowSprite;
-
     //레벨
     int level = 0;
-
     //레벨별 이미지 갯수
     int[] levelCount = { 3, 4, 5, 6 };
     float[] leveltimer = { 1.0f, 1.2f, 1.2f,1.4f };
     int count = 0;
-
     //레벨별 그룹
     public GameObject[] levelGroup;
     public List<Image[]> imgs = new List<Image[]>();
-
     //내가 입력한 순서를 저장할    //레벨에 따라 최대 6개 까지입력
     int mySelNum = 0; //내가 입력한 순서;
     public Image[] mySetImg;
-
     //정답을 저장할
     int[] answer = new int[6];
     public TextMeshProUGUI OX;
@@ -35,18 +29,15 @@ public class RememberGame : Game, IPunObservable
     public TextMeshProUGUI answerCountTxt;
     //맞힌갯수 저장변수
     int answerCount = 0;
-
     //체크하는 큐//입력한 
     Queue<int> check = new Queue<int>();
-
     public GameObject timerObj;
-    float timer = 15.0f;
+    float timer = 40.0f;
     public Image timerbar;
     bool wait = false;
     
     //화살표를 숨기게 하는 함수를 담은 코루틴
     Coroutine currCo;
-
     public TextMeshProUGUI infoText;
     public GameObject GamePanel;          //게임 패널
     //캐릭터
@@ -57,14 +48,8 @@ public class RememberGame : Game, IPunObservable
         base.Init();
 
         for (int i = 0; i < levelGroup.Length; i++)
-        {
             imgs.Add(levelGroup[i].GetComponentsInChildren<Image>());
-        }
-
     }
-
-
-    
 
     public override void StartGame()
     {
@@ -92,7 +77,6 @@ public class RememberGame : Game, IPunObservable
     }
 
 
-
     IEnumerator Game_Co()
     {
         //초기화
@@ -113,8 +97,8 @@ public class RememberGame : Game, IPunObservable
 
   
         timerObj.SetActive(true);
-        timer = 15.0f;
-        timerbar.fillAmount = timer / 60.0f;
+        timer = 40.0f;
+        timerbar.fillAmount = timer / 40.0f;
         //타이머 
         StartCoroutine(Time_Update());
 
@@ -122,17 +106,15 @@ public class RememberGame : Game, IPunObservable
         //게임 로직
         while (timer > 0)
         {      
-            yield return null;
-
+           yield return null;
             //체크하기 //입력받은 큐에들어있는 것을 확인하면서
             if (check.Count > 0)
             {
                 int RL = check.Dequeue(); //앞에 입력한거 가져와서 
                 mySetImg[mySelNum].gameObject.SetActive(true); //내가 선택한 화살표 보여주기
                 mySetImg[mySelNum].sprite = arrowSprite[RL];    //이미지 적용
-
-                
-                if (RL != answer[mySelNum]) //정답이면
+           
+                if (RL != answer[mySelNum]) //정답이 아니면
                 {
                     OX.gameObject.SetActive(true);
                     OX.text = "X";
@@ -142,13 +124,11 @@ public class RememberGame : Game, IPunObservable
                     yield return new WaitForSeconds(0.5f);
                     wait = false;
                     OX.gameObject.SetActive(false);
-
                     FailRemember();
                 }
                 else
                 {
-                    mySelNum++;
-
+                    mySelNum++; //다음 화살표로
                     if (mySelNum > levelCount[level] - 1)
                     {
                         OX.gameObject.SetActive(true);
@@ -159,7 +139,6 @@ public class RememberGame : Game, IPunObservable
                         yield return new WaitForSeconds(0.5f);
                         wait = false;
                         OX.gameObject.SetActive(false);
-
                         SuccessRemember();
                     }
                 }
@@ -175,9 +154,10 @@ public class RememberGame : Game, IPunObservable
 
         answerCountTxt.gameObject.SetActive(false);
         GamePanel.SetActive(false);
-        
-        InGame.Inst.ShowResult();
+
         myPlayer.isMove = true;
+        InGame.Inst.ShowResult();
+       
     }
 
 
@@ -187,7 +167,7 @@ public class RememberGame : Game, IPunObservable
         {
             yield return null;
             timer -= Time.deltaTime;
-            timerbar.fillAmount = timer / 60.0f;
+            timerbar.fillAmount = timer / 40.0f;
         }
     }
 
@@ -287,17 +267,15 @@ public class RememberGame : Game, IPunObservable
         {
             if (level < levelCount.Length)
                 level++;
-       
+      
             count = 0;
         }
 
         answerCount++;
         answerCountTxt.text = "정답 갯수 : " + answerCount;
 
-
         //점수 동기화를 위해 CustomProperties에 저장
         playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
-
         //점수
         if (playerHash.ContainsKey("score"))
             playerHash["score"] = answerCount;
@@ -305,7 +283,6 @@ public class RememberGame : Game, IPunObservable
             playerHash.Add("score", answerCount);
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
         //다음
         ArrowSetting();
         MySetClear();

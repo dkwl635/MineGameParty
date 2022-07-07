@@ -18,7 +18,7 @@ public class LobbyMgr : MonoBehaviour
     private void Awake()
     {
         //전체적인 프레임을 맞춰주기 위한
-        Application.targetFrameRate = 30;
+        Application.targetFrameRate = 60;
        
         SetResolution();
     }

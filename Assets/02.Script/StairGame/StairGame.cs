@@ -9,46 +9,42 @@ using Photon.Realtime;
 
 public class StairGame : Game
 {
-    //내 플레이어
-    public PlayerCharacter myPlayer;
-    //캐릭터들
-    PlayerCharacter[] players;
-
+    public PlayerCharacter myPlayer;    //내 플레이어  
+    PlayerCharacter[] players;             //캐릭터들
     public GameObject GamePanel;          //게임관련 UI
-    //계단 프리팹
-    public GameObject stairPrefab;
-    //계단 처음 스폰 위치
-    public GameObject spawnPosObj;
-    Vector3 spawnPos = Vector3.zero; 
+    public GameObject stairPrefab;        //계단 프리팹
+    public GameObject spawnPosObj;   //계단 처음 스폰 위치
+    Vector3 spawnPos = Vector3.zero;    
     //소환된 계단들을 담아둘  큐 
     Queue<Stairs> stairs = new Queue<Stairs>();
     //마지막 계단을 확인하기 위해
     Stairs lastStair;
-
     //소환된 계단을 담아둘 게임오브젝트
     public GameObject stairsGroup;
     //카메라 //캐릭터가 올라가기 때문에 카메라와 배경화면도 같이 올리기 위해서
     GameObject camera;
     //배경
     GameObject BG;
-
     //점수 텍스트
     public TextMeshProUGUI scroe_Txt;
-
     //제한시간
     public Image gageBar;
     float nextTimer = 2.0f;
     float timer = 2.0f;
-
     //게임 진행 중
     bool game = false;
-
     //상대 Sprite 투명도를 주기위해
     SpriteRenderer otherSprite;
-
     //시작 카운트
     public TextMeshProUGUI countText;
 
+    protected override void Init()
+    {
+        base.Init();
+
+        camera = Camera.main.gameObject;
+        BG = GameObject.Find("BG");
+    }
 
     public override void StartGame()
     {
@@ -57,14 +53,9 @@ public class StairGame : Game
         //캐릭터 설정
         players = InGame.Inst.playerCharacters;
         myPlayer = players[0];
-
         //상대캐릭터는 반투명으로
         otherSprite = players[1].GetComponent<SpriteRenderer>();
         otherSprite.color = new Color(1, 1, 1, 0.5f);
-
-        camera = Camera.main.gameObject;
-
-        BG = GameObject.Find("BG");
 
         //올라가는 버튼 적용
         Button LBT = GameObject.Find("LeftButton").GetComponent<Button>();
@@ -78,19 +69,14 @@ public class StairGame : Game
         //계단 생성하기
         if (PhotonNetwork.IsMasterClient)
             for (int i = 0; i < 20; i++)
-                SpawnStair();
-            
-       
+                SpawnStair();               
         //좌우 이동을 막는다
         myPlayer.isMove = false;
-
         //캐릭터 이동
         spawnPos = spawnPosObj.transform.position + Vector3.up;
-        spawnPos.z = myPlayer.transform.position.z;
+        spawnPos.z = -1;
         myPlayer.transform.position = spawnPos;
-
         gageBar.fillAmount = 1.0f;
-
 
         GamePanel.SetActive(true);
         StartCoroutine(Game_Co());
@@ -186,10 +172,7 @@ public class StairGame : Game
         for (int i = 0; i < players.Length; i++)
         {         
             if (stairs.Peek().transform.position.y + 1.2f > players[i].transform.position.y)
-                destory = false;
-            // - 1.5, - 2.4
-
-       
+                destory = false;       
         }
 
         if (destory)
@@ -209,14 +192,12 @@ public class StairGame : Game
         if (spawn)
             SpawnStair();
 
-
     }
 
   
     void SpawnStair()
     {
         //새로운 다음 계단 만들기   
-
         if(stairs.Count.Equals(0))
         {
             Stairs newStairs = PhotonNetwork.InstantiateRoomObject("Stairs", spawnPosObj.transform.position, Quaternion.identity).GetComponent<Stairs>();
@@ -224,24 +205,17 @@ public class StairGame : Game
             stairs.Enqueue(newStairs);
             lastStair = newStairs;
             newStairs.transform.SetParent(stairsGroup.transform);
-
             return;
         }
 
         int nextX = 0;   
-        if (lastStair.num == 3)
-        {
-            nextX = -1;
-        }
-        else if (lastStair.num == -3)
-        {
-            nextX = 1;
-        }
-        else
-        {
+        if (lastStair.num == 3)        
+            nextX = -1;        
+        else if (lastStair.num == -3)       
+            nextX = 1;   
+        else      
             nextX = Random.Range(0, 2) == 0 ? -1 : 1;        
-        }
-    
+        
         Vector3 nextPos = new Vector3(nextX , 1);//이전 칸 보다 좌우는 랜덤 위로 1칸 증가
         nextPos = lastStair.transform.position + nextPos;
 
@@ -275,13 +249,10 @@ public class StairGame : Game
                 playerHash.Add("score", 1);
 
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerHash);
-
-        }
-        else
-        {
-         
+       }
+        else              
             NoStair();
-        }
+        
     }
 
     void NoStair()
@@ -328,10 +299,6 @@ public class StairGame : Game
         GamePanel.SetActive(false);
 
         InGame.Inst.ShowResult();
-
-
-
-
     }
 
    

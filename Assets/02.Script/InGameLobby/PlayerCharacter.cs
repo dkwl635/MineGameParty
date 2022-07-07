@@ -25,8 +25,6 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     public Vector3 currPos = Vector3.zero; //위치
     public bool isMove = true;
 
-  
-
     private void Awake()
     {
         rigidbody = GetComponent<Rigidbody2D>();
@@ -34,6 +32,7 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         spriteRenderer = GetComponent<SpriteRenderer>();
         pv = GetComponent<PhotonView>();     
      }
+
 
     // Start is called before the first frame update
     void Start()
@@ -47,29 +46,25 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
             FindObjectOfType<CharController>().player = this;              
             //내캐릭이 먼저 보이게하게
             transform.position -= Vector3.forward;
-            
             this.tag = "Player";
             //닉네임 색깔
-            nickNameTxt.text = "<color=" + InGame.Inst.myNickNameColor.ToString() + ">" + pv.Owner.NickName + "</color>";
+            nickNameTxt.text = "<color=" + InGame.Inst.myNickNameColor.ToString() + ">" + pv.Owner.NickName + "</color>";      
             InGame.Inst.playerCharacters[0] = this;
 
         }
-        else
-        {
-            //원격  동기화는 적용안함
-            rigidbody.gravityScale = 0.0f;
+        else    //원격 동기화 캐릭터일 경우
+        {  
+            rigidbody.gravityScale = 0.0f;     //중력 끄기
+            this.tag = "OtherPlayer";   //태그 설정
             //닉네임 색깔
             nickNameTxt.text = "<color=" + InGame.Inst.otherNickNameColor.ToString() + ">" + pv.Owner.NickName + "</color>";
-            InGame.Inst.playerCharacters[1] = this;
-            this.tag = "OtherPlayer";
-
+            InGame.Inst.playerCharacters[1] = this; 
         }
 
-    
 
+        //방장이 아니면 방장표시 끄기
         if (!pv.Owner.IsMasterClient)
             starImg.SetActive(false);
-
     }
 
     private void Update()
@@ -79,45 +74,25 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
 
     void Move_Update()
     {
-        if (pv.IsMine) //내가 조종할때
-        {
-           
+        //내가 조종할때
+        if (pv.IsMine) {       
             if (!isMove)
                 return;
-
             velocity.x = h * 2;
             velocity.y = rigidbody.velocity.y;
             rigidbody.velocity = velocity;
-
-            //test
-            if (Input.GetKeyDown(KeyCode.A))
-                SetHit();
-
         }
-        else
-        {
+        else { 
             currPos = transform.position;
             currPos.z = 0;
             transform.position = currPos;
         }
     }
-
-    //움직이기 시작할때
-    public void MoveStart(int h)
-    {
-        this.h += h;
-
-        SetAnim();
-    }
-
-    //움직이는 버튼에서 손을때면
-    public void MoveEnd(int h)
-    {
-        this.h -= h;
-      
-        SetAnim();
-    }
-
+    //버튼에 연결되는 함수     //움직이기 시작할때
+    public void MoveStart(int h) { this.h += h; SetAnim(); }
+    //버튼에 연결되는 함수   //움직이는 버튼에서 손을때면
+    public void MoveEnd(int h) { this.h -= h; SetAnim(); }
+    
     void SetAnim()//이미지 , 애니메이션 변경
     {
         if (this.h.Equals(-1))
@@ -130,12 +105,8 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
         else
             animator.SetBool("move", true);
     }
-
-    public void ChangeNickName(MyColor color)
-    {
-        nickNameTxt.text = "<color=" + color.ToString() + ">" + pv.Owner.NickName + "</color>";      
-    }
-
+    //닉네임 컬러가 바꾸면
+    public void ChangeNickName(MyColor color) { nickNameTxt.text = "<color=" + color.ToString() + ">" + pv.Owner.NickName + "</color>"; }
 
     //원격동기화
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
@@ -159,23 +130,18 @@ public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         pv.RPC("RPCHit", RpcTarget.Others);
         animator.SetTrigger("hit");
-
-    }
-    [PunRPC]
-    void RPCHit()//트리거 동기화 다른 플레이어도 보여지게
-    {
-        animator.SetTrigger("hit");
     }
 
-    public void Ready(bool bReady)
+    [PunRPC] //트리거 동기화 다른 플레이어도 보여지게
+    void RPCHit() { animator.SetTrigger("hit"); }
+
+    public void Ready(bool bReady) //머리위 레디 표시 
     {
         ready.SetActive(bReady);    
         pv.RPC("RPCReady", RpcTarget.Others, bReady);
     }
-    [PunRPC]
-    void RPCReady(bool bReady)
-    {   
-        ready.SetActive(bReady);
-    }
+
+    [PunRPC]// 동기화를 위한
+    void RPCReady(bool bReady) { ready.SetActive(bReady); }
 
 }

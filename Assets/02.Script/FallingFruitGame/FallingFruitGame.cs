@@ -20,70 +20,58 @@ public class FallingFruitGame : Game
         Strawberry,
         Max,
     }
-
     public static FallingFruitGame Inst;    //싱글턴 패턴을 위한
     public PlayerCharacter[] playerObj;   //과일들의 충돌캐릭터들의 거리 계산을 위한 플레이어들 캐릭터변수
-
     public GameObject fruitsSpanwPos; //과일의 중심스폰위치
-    
-
 
     //과일 먹고 나올 이펙트
     public GameObject collectObj;   //과일을 먹고 나올 이펙트 프리팹
-    Transform collectObjTr;
-    Queue<GameObject> collectQu = new Queue<GameObject>();
+    Transform collectObjTr; //이펙트를 넣을 부모오브젝트
+    Queue<GameObject> collectQu = new Queue<GameObject>();  //오브젝트 풀로 사용할 큐
 
     [Header("UI")]
-    public GameObject GamePanel;
+    public GameObject GamePanel;        //점수, 타이머 캔버스
     public TextMeshProUGUI scoreTxt;    //점수 
     public TextMeshProUGUI CountTxt;   //남은시간
-                                       //점수 
-
-    int count = 30;
+                                      
+    int count = 30; //타이머
     
-    float spawnTimer = 0.0f;                 //게임시간   
+    float spawnTimer = 0.0f;       //게임시간   
     float nextSpawnTime = 1.0f; //과일 스폰 주기
     bool gameStart = false;  //게임 상태 bool 변수
 
     protected override void Init()
     {
         base.Init();
-
         Inst = this;
 
         collectObjTr = new GameObject("CollectObjPool").transform;
         collectObjTr.SetParent(transform);
 
+        //미리 이펙트 만들어놓기
         for (int i = 0; i < 10; i++)
         {
             GameObject obj = Instantiate(collectObj, collectObjTr);
             obj.SetActive(false);
             collectQu.Enqueue(obj);
         }
-
     }
-
 
     public override void StartGame()
     {
         base.StartGame();
-
         SoundMgr.Inst.PlayBGM("FallingFruitGame");
 
         GamePanel.SetActive(true);
         //씬에 있는 플레이어 오브젝트 불러오기
         playerObj = InGame.Inst.playerCharacters;
         //점수 셋팅
-        score = 0;
         scoreTxt.text = "0";
-
-      
+        //게임 로직 스타트
         StartCoroutine(Game_Co());
 
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient)   //과일 스폰
             StartCoroutine(SpawnFruits_Update());
-
-
     }
 
     IEnumerator Game_Co()
@@ -143,22 +131,15 @@ public class FallingFruitGame : Game
                 }
 
                 spawnTimer = 0.0f;
-                nextSpawnTime = Random.Range(0.7f, 1.5f);
+                nextSpawnTime = Random.Range(0.7f, 1.2f);
             }
 
         }
     }
 
-   [PunRPC]
-   void TimeTxt(int count)
-    {
-        CountTxt.text = count.ToString();
-        this.count = count;
-    }
 
     public void SpawnFruits()   //과일 스폰하기
     {
-        Debug.Log("a");
         //랜덤과일 및 스폰위치 잡기
         int rand = Random.Range(0, (int)FruitsType.Max);
         float randx = Random.Range(-4.0f, 4.0f);
@@ -178,8 +159,8 @@ public class FallingFruitGame : Game
     [PunRPC]
     void GetFruit(Vector3 pos)//점수증가 와 먹은 위치에 효과보여주시    
     {
-        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;
         //플레이어 에게 점수 적용시켜주기 
+        playerHash = PhotonNetwork.LocalPlayer.CustomProperties;     
         //포톤 플레이어 SetCustomProperties을 이용하여 동기화
         if (playerHash.ContainsKey("score"))
         {

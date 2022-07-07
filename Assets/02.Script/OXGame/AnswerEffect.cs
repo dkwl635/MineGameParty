@@ -12,6 +12,16 @@ public class AnswerEffect : MonoBehaviour
 
     private Color originColor;
 
+    private void Awake()
+    {
+        text = GetComponent<TextMeshProUGUI>();
+    }
+    private void OnEnable()
+    {
+        count = 4;
+        timer = 0.0f;
+    }
+
     private void Update()
     {
         if (count <= 0)
@@ -33,15 +43,5 @@ public class AnswerEffect : MonoBehaviour
 
     }
 
-    private void Awake()
-    { 
-        text = GetComponent<TextMeshProUGUI>();
-    }
 
-    private void OnEnable()
-    {
-        count = 4;
-        timer = 0.0f;
-        
-    }
 }

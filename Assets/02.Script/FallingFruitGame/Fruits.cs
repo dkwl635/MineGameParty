@@ -1,6 +1,4 @@
 using Photon.Pun;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Fruits : MonoBehaviourPunCallbacks 
@@ -21,12 +19,10 @@ public class Fruits : MonoBehaviourPunCallbacks
     }
 
     private void FixedUpdate()
-    {
+    {      
         //PhotonView로 인해 위치 동기화 됨
         if (PhotonNetwork.LocalPlayer.IsMasterClient)
-        {
-            transform.Translate(Vector2.down * Time.fixedTime * 0.001f);
-        }
+          transform.position += (Vector3.down * Time.fixedDeltaTime * 2);     
     }
 
     // Update is called once per frame
@@ -42,23 +38,19 @@ public class Fruits : MonoBehaviourPunCallbacks
                     
                     if (temp <= 0.7f)
                     {
-                        get = true;                                  
-                        
+                        get = true;                                                        
                         if(temp < dis)  //가장 가까운 유저
                         {
                             player = FallingFruitGame.Inst.playerObj[i];
                             dis = temp;
                         }             
-                    }
-                
-                }
-                
+                    }                
+                }           
                 if(get)
                 {
                     FallingFruitGame.Inst.GetFruit(player, this.transform.position);
                     PhotonNetwork.Destroy(this.pv);
                 }
-
                 if(transform.position.y < -7)
                     PhotonNetwork.Destroy(this.pv);
         }

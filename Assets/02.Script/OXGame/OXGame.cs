@@ -7,59 +7,45 @@ using Photon.Pun;
 using Photon.Realtime;
 
 public class OXGame : Game
-{
-
+{ 
     enum OX
     {
-        O,
-        X,
-        None,
+        O, X, None,
     }
-
-
-
     //문제가 나오는 Text
     public TextMeshProUGUI questionTxt;
     //문제 테이블
     List<KeyValuePair<string, OX>> questionList = new List<KeyValuePair<string, OX>>();
     //문제 번호가 저장되어있는
     List<int> questionNum = new List<int>();
-    int currQuestion = 0;
-    int step = 0;
-    bool bIng = false;
-
+    int currQuestion = 0;   //현재 문제 인덱스
+    int step = 0;               //현재 문제 순서
+    bool bIng = false;      //타이머 종료 구하기
     //플레이어가 선택한것
     OX myChoose = OX.None;
     OX otherChoose = OX.None;
-    
     bool choose = false;
     //OX 선택 버튼
     public GameObject O_Btn;
     public GameObject X_Btn;
-
     [Header("UI")]
     public GameObject GamePanel;
     public TextMeshProUGUI myNickName;
     public TextMeshProUGUI otherNickName;
     public TextMeshProUGUI myscore;
-
     //플레이어들이 선택한 것
     public GameObject myChoose_Img;
     public TextMeshProUGUI myChoose_Txt;
     public GameObject otherChoose_Img;
     public TextMeshProUGUI ohterChoose_Txt;
-
     //정답이펙트
     public TextMeshProUGUI myAnswerEffect;
     public TextMeshProUGUI ohterAnswerEffect;
-
-
     //타이머
     [Header("Timer")]
     public Image gageBar;
     float timer = 0.0f;
-    float curTimer = 0.0f;
-
+  
 
     protected override void Init()
     {
@@ -67,6 +53,18 @@ public class OXGame : Game
 
         //문제 테이블 
         QuestionTableSet();
+    }
+
+    void QuestionTableSet() //문제 테이블 셋팅하기
+    {
+        questionList.Add(new KeyValuePair<string, OX>("문어다리는 10개이다", OX.X));
+        questionList.Add(new KeyValuePair<string, OX>("달팽이도 이빨이 있다.", OX.O));
+        questionList.Add(new KeyValuePair<string, OX>("고래는 5M 이하의 물속에서 잠을 잔다.", OX.X));
+        questionList.Add(new KeyValuePair<string, OX>("원숭이에게도 지문이 있다", OX.O));
+        questionList.Add(new KeyValuePair<string, OX>("남극에도 우편번호가 있다", OX.X));
+        questionList.Add(new KeyValuePair<string, OX>("BUS라는 단어는 미국에서 처음 사용하였다", OX.X));
+        questionList.Add(new KeyValuePair<string, OX>("닭도 왼발잡이 , 오른발잡이가 있다.", OX.O));
+        questionList.Add(new KeyValuePair<string, OX>("새는 뒤로도 날 수 있다.", OX.O));
     }
 
     public override void StartGame()
@@ -106,17 +104,6 @@ public class OXGame : Game
     }
 
 
-    void QuestionTableSet() //문제 테이블 셋팅하기
-    {
-        questionList.Add(new KeyValuePair<string, OX>("문어다리는 10개이다", OX.X));
-        questionList.Add(new KeyValuePair<string, OX>("달팽이도 이빨이 있다.", OX.O));
-        questionList.Add(new KeyValuePair<string, OX>("고래는 5M 이하의 물속에서 잠을 잔다.", OX.X));
-        questionList.Add(new KeyValuePair<string, OX>("원숭이에게도 지문이 있다", OX.O));
-        questionList.Add(new KeyValuePair<string, OX>("남극에도 우편번호가 있다", OX.X));
-        questionList.Add(new KeyValuePair<string, OX>("BUS라는 단어는 미국에서 처음 사용하였다", OX.X));
-        questionList.Add(new KeyValuePair<string, OX>("닭도 왼발잡이 , 오른발잡이가 있다.", OX.O));
-        questionList.Add(new KeyValuePair<string, OX>("새는 뒤로도 날 수 있다.", OX.O));
-    }
 
     void QuestionSet()//방장만 무슨문제 출제할지 
     {
@@ -124,7 +111,7 @@ public class OXGame : Game
         while (questionNum.Count < 5)
         {
             int rand = Random.Range(0, questionList.Count);
-
+            
             if (!questionNum.Contains(rand))
             {
                 questionNum.Add(rand);
@@ -148,24 +135,17 @@ public class OXGame : Game
             if (PhotonNetwork.IsMasterClient)
             {
                 pv.RPC("SetTextQuestion", RpcTarget.AllViaServer, (int)questionNum[step]);            
-            }
-
-         
+            }   
             yield return new WaitForSeconds(0.5f);
            
-
             //모든 플레이어가 결정할때까지 대기 //또는 시간이 다지나면
-            //플레이어가 선택한것 보여주기
             choose = false;
             bIng = true;
             while (bIng) //타이머 돌때까지 루프
             {
                 yield return null;
-
-                if (choose) //만약 내 선택을했으면 상대 선택한것도 체크하기
-                {
-                    OtherChooseCheck();
-                }
+                if (choose) //만약 내 선택을했으면 상대 선택한것도 체크하기         
+                    OtherChooseCheck();               
             }
 
             Choose_TimeOver();
@@ -223,29 +203,23 @@ public class OXGame : Game
             timer -= Time.deltaTime;
             gageBar.fillAmount = timer / 5.0f;
         }
-
         bIng = false;
-
     }
 
 
     public void Choose_OBtn ()  //유저 선택  O 
     {
         SoundMgr.Inst.PlayEffect("Button");
-
         myChoose = OX.O;
         choose = true;
-
         OnUserChoose();
     }
 
     public void Choose_XBtn()//유저 선택  X
     {
         SoundMgr.Inst.PlayEffect("Button");
-
         myChoose = OX.X;
         choose = true;
-
         OnUserChoose();
     }
 
@@ -281,12 +255,9 @@ public class OXGame : Game
             myChoose_Txt.text = "X";
             myChoose_Txt.color = Color.red;
         }
-        else
-        {
-            myChoose_Txt.text = "";
-        }
-
-
+        else      
+           myChoose_Txt.text = "";
+        
         if(!myChoose.Equals(OX.None))
         {
             //원격동기화를 위헤 CustomProperties에 선택한것 올리기
@@ -339,11 +310,8 @@ public class OXGame : Game
         }
         
         if(timer <= 0 && otherChoose.Equals(OX.None))
-        {
             ohterChoose_Txt.text = "";
-        }
-
-    
+         
     }
 
     void OnCheckOX()//정답 확인
@@ -418,10 +386,8 @@ public class OXGame : Game
         if (targetPlayer != PhotonNetwork.LocalPlayer)
         {         
             if (changedProps.ContainsKey("ChooseOX"))
-            {
-       
+            {    
                 otherChoose = (OX)changedProps["ChooseOX"];
-
             }
         }
     }
