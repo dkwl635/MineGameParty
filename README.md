@@ -5,3 +5,6 @@
 
 07.04.End
 
+ppt :https://github.com/dkwl635/MineGameParty/blob/main/MiniGameS.pdf
+
+
